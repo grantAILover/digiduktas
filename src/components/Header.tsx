@@ -28,27 +28,13 @@ export default async function Header() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm font-medium text-muted sm:flex">
-          <Link href="/produktai" className="transition-colors hover:text-ink">
-            Naršyti
-          </Link>
-          <Link href="/parduoti" className="transition-colors hover:text-ink">
-            Parduoti
-          </Link>
-          <Link href="/kaip-veikia" className="transition-colors hover:text-ink">
-            Kaip veikia
-          </Link>
-        </nav>
-
+        {/* Pre-launch: kol platforma neatidaryta, meniu minimalus */}
         <div className="flex items-center gap-2">
-          {user ? (
+          {user && (
             <>
-              <Link
-                href="/paskyra"
-                className="hidden rounded-lg px-3 py-2 text-sm font-medium text-ink transition-colors hover:bg-brand-soft sm:block"
-              >
+              <span className="hidden text-sm font-medium text-muted sm:block">
                 {displayName}
-              </Link>
+              </span>
               <form action={logout}>
                 <button
                   type="submit"
@@ -57,21 +43,6 @@ export default async function Header() {
                   Atsijungti
                 </button>
               </form>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/auth"
-                className="hidden rounded-lg px-3 py-2 text-sm font-medium text-ink transition-colors hover:bg-brand-soft sm:block"
-              >
-                Prisijungti
-              </Link>
-              <Link
-                href="/parduoti"
-                className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
-              >
-                Pradėti parduoti
-              </Link>
             </>
           )}
         </div>
