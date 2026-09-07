@@ -1,4 +1,5 @@
 import Link from "next/link";
+import WaitlistForm from "@/components/WaitlistForm";
 
 const categories = [
   { emoji: "🎨", name: "Grafika ir dizainas", slug: "grafika" },
@@ -34,22 +35,12 @@ export default function Home() {
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-lg text-muted">
             Šablonai, presetai, e-knygos, kursai — sukurti kūrėjų iš Lietuvos.
-            Nusipirk per kelias sekundes arba pradėk uždirbti iš savo kūrybos.
+            Netrukus startuojame. Palik el. paštą ir sužinok pirmas.
           </p>
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              href="/produktai"
-              className="w-full rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark sm:w-auto"
-            >
-              Naršyti produktus
-            </Link>
-            <Link
-              href="/parduoti"
-              className="w-full rounded-lg border border-line bg-surface px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-brand-soft sm:w-auto"
-            >
-              Pradėti parduoti
-            </Link>
-          </div>
+          <WaitlistForm />
+          <p className="mt-4 text-xs text-muted">
+            Be spamo. Vienas laiškas, kai atidarysime duris.
+          </p>
         </div>
       </section>
 
