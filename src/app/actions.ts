@@ -16,8 +16,14 @@ export async function joinWaitlist(
     return { error: "Įvesk teisingą el. pašto adresą." };
   }
 
+  const role = String(formData.get("role") ?? "").trim();
+  const allowedRoles = ["seller", "buyer", "both"];
+  if (!allowedRoles.includes(role)) {
+    return { error: "Pasirink, ar nori pirkti, ar parduoti." };
+  }
+
   const supabase = await createClient();
-  const { error } = await supabase.from("waitlist").insert({ email });
+  const { error } = await supabase.from("waitlist").insert({ email, role });
 
   if (error) {
     // 23505 = unikalumo pažeidimas → jau užsiregistravęs, laikom sėkme
