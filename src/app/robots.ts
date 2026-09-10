@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/auth", "/parduoti", "/paskyra", "/pirkiniai"],
+      disallow: ["/auth", "/parduoti", "/paskyra", "/pirkiniai", "/admin"],
     },
     sitemap: "https://digiduktas.lt/sitemap.xml",
     host: "https://digiduktas.lt",
