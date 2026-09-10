@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { logout } from "@/app/auth/actions";
+import UserMenu from "@/components/UserMenu";
 
 export default async function Header() {
   const supabase = await createClient();
@@ -8,14 +8,16 @@ export default async function Header() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let displayName: string | null = null;
+  let displayName = "Paskyra";
+  let avatarUrl: string | null = null;
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("display_name")
+      .select("display_name, avatar_url")
       .eq("id", user.id)
       .single();
     displayName = profile?.display_name ?? user.email?.split("@")[0] ?? "Paskyra";
+    avatarUrl = profile?.avatar_url ?? null;
   }
 
   return (
@@ -28,23 +30,8 @@ export default async function Header() {
           </span>
         </Link>
 
-        {/* Pre-launch: kol platforma neatidaryta, meniu minimalus */}
         <div className="flex items-center gap-2">
-          {user && (
-            <>
-              <span className="hidden text-sm font-medium text-muted sm:block">
-                {displayName}
-              </span>
-              <form action={logout}>
-                <button
-                  type="submit"
-                  className="rounded-lg border border-line px-3 py-2 text-sm font-medium text-ink transition-colors hover:bg-brand-soft"
-                >
-                  Atsijungti
-                </button>
-              </form>
-            </>
-          )}
+          {user && <UserMenu displayName={displayName} avatarUrl={avatarUrl} />}
         </div>
       </div>
     </header>
