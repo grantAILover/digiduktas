@@ -12,7 +12,7 @@ async function getProduct(slug: string) {
   const { data } = await supabase
     .from("products")
     .select(
-      "id, title, description, price_cents, category, cover_image_url, status, profiles:seller_id(display_name, is_verified)",
+      "id, seller_id, title, description, price_cents, category, cover_image_url, status, profiles:seller_id(display_name, is_verified)",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -76,7 +76,9 @@ export default async function ProduktasPage({
           <h1 className="mt-3 text-2xl font-bold tracking-tight">{p.title}</h1>
 
           <p className="mt-2 flex items-center gap-1.5 text-sm text-muted">
-            <span>{p.seller?.display_name ?? "Kūrėjas"}</span>
+            <Link href={`/kurejas/${p.seller_id}`} className="hover:text-ink">
+              {p.seller?.display_name ?? "Kūrėjas"}
+            </Link>
             {p.seller?.is_verified && <VerifiedBadge />}
           </p>
 
