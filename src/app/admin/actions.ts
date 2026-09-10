@@ -54,6 +54,14 @@ export async function setProductStatus(formData: FormData) {
   revalidatePath("/admin");
 }
 
+export async function resolveReport(formData: FormData) {
+  const supabase = await requireAdmin();
+  if (!supabase) return;
+  const reportId = String(formData.get("reportId"));
+  await supabase.from("reports").update({ status: "resolved" }).eq("id", reportId);
+  revalidatePath("/admin");
+}
+
 export async function toggleVerified(formData: FormData) {
   const supabase = await requireAdmin();
   if (!supabase) return;

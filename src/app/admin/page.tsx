@@ -8,6 +8,7 @@ import {
   rejectSeller,
   setProductStatus,
   toggleVerified,
+  resolveReport,
 } from "./actions";
 
 export const metadata = { title: "Admin" };
@@ -30,8 +31,13 @@ export default async function AdminPage() {
     .single();
   if (!me?.is_admin) notFound();
 
-  const [{ data: apps }, { data: pending }, { data: listings }, { data: sellers }] =
-    await Promise.all([
+  const [
+    { data: apps },
+    { data: pending },
+    { data: listings },
+    { data: sellers },
+    { data: reports },
+  ] = await Promise.all([
       supabase
         .from("seller_applications")
         .select("id, user_id, full_name, about, portfolio_url, created_at")
@@ -52,6 +58,11 @@ export default async function AdminPage() {
         .select("id, display_name, is_verified")
         .eq("is_seller", true)
         .order("display_name", { ascending: true }),
+      supabase
+        .from("reports")
+        .select("id, reason, created_at, products:product_id(title, slug)")
+        .eq("status", "open")
+        .order("created_at", { ascending: true }),
     ]);
 
   // Pasirašytos nuorodos peržiūrėti pending produktų failus
@@ -171,6 +182,48 @@ export default async function AdminPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+      </section>
+
+      {/* Skundai */}
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold">
+          Skundai <span className="text-muted">({reports?.length ?? 0})</span>
+        </h2>
+        {!reports?.length ? (
+          <p className="mt-2 text-sm text-muted">Naujų skundų nėra.</p>
+        ) : (
+          <div className="mt-3 flex flex-col gap-2">
+            {reports.map((r) => {
+              const prod = Array.isArray(r.products) ? r.products[0] : r.products;
+              return (
+                <div
+                  key={r.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    {prod?.slug ? (
+                      <Link
+                        href={`/produktas/${prod.slug}`}
+                        className="text-sm font-medium hover:text-brand"
+                      >
+                        {prod?.title ?? "Produktas"}
+                      </Link>
+                    ) : (
+                      <span className="text-sm font-medium">Produktas pašalintas</span>
+                    )}
+                    <p className="text-xs text-muted">{r.reason}</p>
+                  </div>
+                  <form action={resolveReport}>
+                    <input type="hidden" name="reportId" value={r.id} />
+                    <button className={`${btn} border border-line hover:bg-brand-soft`}>
+                      Pažymėti išspręsta
+                    </button>
+                  </form>
+                </div>
+              );
+            })}
           </div>
         )}
       </section>

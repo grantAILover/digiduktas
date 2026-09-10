@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { categoryName } from "@/lib/categories";
 import { VerifiedBadge, eur } from "@/components/ProductCard";
+import ReportButton from "./ReportButton";
 
 type Seller = { display_name: string | null; is_verified: boolean };
 
@@ -11,7 +12,7 @@ async function getProduct(slug: string) {
   const { data } = await supabase
     .from("products")
     .select(
-      "title, description, price_cents, category, cover_image_url, status, profiles:seller_id(display_name, is_verified)",
+      "id, title, description, price_cents, category, cover_image_url, status, profiles:seller_id(display_name, is_verified)",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -38,6 +39,11 @@ export default async function ProduktasPage({
   const { slug } = await params;
   const p = await getProduct(slug);
   if (!p) notFound();
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
@@ -97,6 +103,8 @@ export default async function ProduktasPage({
               </p>
             </div>
           )}
+
+          <ReportButton productId={p.id} isLoggedIn={!!user} />
         </div>
       </div>
     </div>
