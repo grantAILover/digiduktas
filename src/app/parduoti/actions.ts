@@ -72,12 +72,15 @@ export async function createProduct(
   // Tik patvirtinti pardavėjai gali kurti
   const { data: profile } = await supabase
     .from("profiles")
-    .select("is_seller")
+    .select("is_seller, is_verified")
     .eq("id", user.id)
     .single();
   if (!profile?.is_seller) {
     return { error: "Jūsų pardavėjo paraiška dar nepatvirtinta." };
   }
+
+  // Verified kūrėjų produktai skelbiami iškart; kitų — peržiūrimi
+  const status = profile.is_verified ? "live" : "pending";
 
   const title = input.title.trim();
   if (!title) return { error: "Įrašykite pavadinimą." };
@@ -100,7 +103,7 @@ export async function createProduct(
     category: input.category || null,
     cover_image_url: input.coverImageUrl,
     file_path: input.filePath,
-    status: "pending", // laukia admino patvirtinimo (#4)
+    status, // verified → 'live', kiti → 'pending' (peržiūra)
   });
 
   if (error) return { error: "Nepavyko išsaugoti produkto." };
