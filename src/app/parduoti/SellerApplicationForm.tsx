@@ -23,11 +23,11 @@ export default function SellerApplicationForm() {
       </label>
 
       <label className="flex flex-col gap-1.5 text-sm font-medium">
-        Apie tave / ką kursi
+        Apie jus / ką kursite
         <textarea
           name="about"
           rows={4}
-          placeholder="Trumpai — kokius produktus planuoji parduoti?"
+          placeholder="Trumpai — kokius produktus planuojate parduoti?"
           className="rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none transition-colors focus:border-brand"
         />
       </label>

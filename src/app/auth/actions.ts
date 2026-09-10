@@ -12,7 +12,7 @@ function translate(message: string): string {
   if (m.includes("user already registered")) return "Su šiuo el. paštu jau užsiregistruota.";
   if (m.includes("password should be at least")) return "Slaptažodis per trumpas (min. 6 simboliai).";
   if (m.includes("unable to validate email")) return "Neteisingas el. pašto formatas.";
-  if (m.includes("email not confirmed")) return "El. paštas dar nepatvirtintas. Patikrink pašto dėžutę.";
+  if (m.includes("email not confirmed")) return "El. paštas dar nepatvirtintas. Patikrinkite pašto dėžutę.";
   return message;
 }
 
@@ -24,7 +24,7 @@ export async function authenticate(
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
-  if (!email || !password) return { error: "Įvesk el. paštą ir slaptažodį." };
+  if (!email || !password) return { error: "Įveskite el. paštą ir slaptažodį." };
 
   const supabase = await createClient();
 
@@ -41,7 +41,7 @@ export async function authenticate(
     if (error) return { error: translate(error.message) };
     // Jei įjungtas el. pašto patvirtinimas — sesijos dar nėra.
     if (!data.session) {
-      return { notice: "Beveik! Patvirtink registraciją per nuorodą, atsiųstą į el. paštą." };
+      return { notice: "Beveik! Patvirtinkite registraciją per nuorodą, atsiųstą į el. paštą." };
     }
   } else {
     const { error } = await supabase.auth.signInWithPassword({ email, password });

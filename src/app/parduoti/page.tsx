@@ -25,9 +25,9 @@ export default async function ParduotiPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-md px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Parduok savo kūrybą</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Parduokite savo kūrybą</h1>
         <p className="mt-3 text-muted">
-          Prisijunk arba susikurk paskyrą, kad galėtum pradėti parduoti.
+          Prisijunkite arba susikurkite paskyrą, kad galėtumėte pradėti parduoti.
         </p>
         <Link
           href="/auth"
@@ -67,7 +67,7 @@ export default async function ParduotiPage() {
 
         {!products?.length ? (
           <div className="mt-8 rounded-xl border border-dashed border-line bg-surface p-10 text-center">
-            <p className="text-muted">Dar neturi produktų.</p>
+            <p className="text-muted">Dar neturite produktų.</p>
             <Link
               href="/parduoti/naujas"
               className="mt-4 inline-block rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
@@ -118,7 +118,7 @@ export default async function ParduotiPage() {
         <p className="text-4xl">⏳</p>
         <h1 className="mt-4 text-2xl font-bold tracking-tight">Paraiška gauta</h1>
         <p className="mt-3 text-muted">
-          Peržiūrime tavo paraišką tapti pardavėju. Pranešime, kai patvirtinsime.
+          Peržiūrime jūsų paraišką tapti pardavėju. Pranešime, kai patvirtinsime.
         </p>
       </div>
     );
@@ -129,7 +129,7 @@ export default async function ParduotiPage() {
       <div className="mx-auto max-w-md px-4 py-20 text-center">
         <h1 className="text-2xl font-bold tracking-tight">Paraiška atmesta</h1>
         <p className="mt-3 text-muted">
-          Deja, tavo paraiška šįkart nebuvo patvirtinta.
+          Deja, jūsų paraiška šįkart nebuvo patvirtinta.
         </p>
       </div>
     );
@@ -139,10 +139,10 @@ export default async function ParduotiPage() {
   return (
     <div className="mx-auto max-w-md px-4 py-16">
       <h1 className="text-center text-2xl font-bold tracking-tight">
-        Tapk pardavėju
+        Tapkite pardavėju
       </h1>
       <p className="mt-2 text-center text-sm text-muted">
-        Užpildyk trumpą paraišką. Patvirtinę galėsi įkelti produktus.
+        Užpildykite trumpą paraišką. Patvirtinę galėsite įkelti produktus.
       </p>
       <SellerApplicationForm />
     </div>

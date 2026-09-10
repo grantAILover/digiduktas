@@ -13,13 +13,13 @@ export async function joinWaitlist(
     .toLowerCase();
 
   if (!email || !email.includes("@") || !email.includes(".")) {
-    return { error: "Įvesk teisingą el. pašto adresą." };
+    return { error: "Įveskite teisingą el. pašto adresą." };
   }
 
   const role = String(formData.get("role") ?? "").trim();
   const allowedRoles = ["seller", "buyer", "both"];
   if (!allowedRoles.includes(role)) {
-    return { error: "Pasirink, ar nori pirkti, ar parduoti." };
+    return { error: "Pasirinkite, ar norite pirkti, ar parduoti." };
   }
 
   const supabase = await createClient();
@@ -28,7 +28,7 @@ export async function joinWaitlist(
   if (error) {
     // 23505 = unikalumo pažeidimas → jau užsiregistravęs, laikom sėkme
     if (error.code === "23505") return { ok: true };
-    return { error: "Nepavyko užregistruoti. Pabandyk dar kartą." };
+    return { error: "Nepavyko užregistruoti. Pabandykite dar kartą." };
   }
 
   return { ok: true };

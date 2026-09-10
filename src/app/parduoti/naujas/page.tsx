@@ -20,7 +20,7 @@ export default async function NaujasProduktasPage() {
     <div className="mx-auto max-w-xl px-4 py-12 sm:px-6">
       <h1 className="text-2xl font-bold tracking-tight">Naujas produktas</h1>
       <p className="mt-2 text-sm text-muted">
-        Įkelk failą, aprašymą ir kainą. Peržiūrėsime ir paskelbsime.
+        Įkelkite failą, aprašymą ir kainą. Peržiūrėsime ir paskelbsime.
       </p>
       <ProductForm />
     </div>

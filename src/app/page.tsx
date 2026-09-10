@@ -17,8 +17,8 @@ const values = [
   },
   {
     emoji: "💸",
-    title: "Pinigai tiesiai tau",
-    text: "Parduok savo kūrybą, o uždarbis keliauja tiesiai į tavo banko sąskaitą. Komisija maža ir aiški.",
+    title: "Pinigai tiesiai jums",
+    text: "Parduokite savo kūrybą, o uždarbis keliauja tiesiai į jūsų banko sąskaitą. Komisija maža ir aiški.",
   },
   {
     emoji: "🔒",
@@ -37,15 +37,15 @@ const examples = [
 ];
 
 const steps = [
-  { n: "1", title: "Susikurk paskyrą", text: "Prisijunk per el. paštą — nemokamai, per minutę." },
-  { n: "2", title: "Įkelk savo produktą", text: "Failą, aprašymą ir kainą. Peržiūrėsim ir paskelbsim." },
-  { n: "3", title: "Gauk pinigus", text: "Pirkėjai apmoka, uždarbis keliauja tiesiai tau." },
+  { n: "1", title: "Susikurkite paskyrą", text: "Prisijunkite per el. paštą — nemokamai, per minutę." },
+  { n: "2", title: "Įkelkite savo produktą", text: "Failą, aprašymą ir kainą. Peržiūrėsim ir paskelbsim." },
+  { n: "3", title: "Gaukite pinigus", text: "Pirkėjai apmoka, uždarbis keliauja tiesiai jums." },
 ];
 
 const faq = [
   {
     q: "Kada startuojate?",
-    a: "Netrukus. Užsiregistruok į laukiančiųjų sąrašą ir pranešime tau vienais pirmųjų, kai atidarysime duris.",
+    a: "Netrukus. Užsiregistruokite į laukiančiųjų sąrašą ir pranešime jums vieniems pirmųjų, kai atidarysime duris.",
   },
   {
     q: "Kiek kainuoja parduoti?",
@@ -57,11 +57,11 @@ const faq = [
   },
   {
     q: "Kaip gausiu pinigus?",
-    a: "Per saugų mokėjimų tiekėją uždarbis bus pervedamas tiesiai į tavo banko sąskaitą.",
+    a: "Per saugų mokėjimų tiekėją uždarbis bus pervedamas tiesiai į jūsų banko sąskaitą.",
   },
   {
     q: "Ar saugu pirkti?",
-    a: "Taip. Sumokėjęs iškart gauni failą per apsaugotą, laikiną atsisiuntimo nuorodą.",
+    a: "Taip. Sumokėję iškart gaunate failą per apsaugotą, laikiną atsisiuntimo nuorodą.",
   },
 ];
 
@@ -72,12 +72,12 @@ export default function Home() {
       <section className="border-b border-line bg-gradient-to-b from-brand-soft to-canvas">
         <div className="mx-auto max-w-6xl px-4 py-20 text-center sm:px-6 sm:py-28">
           <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
-            Pirk ir parduok{" "}
+            Pirkite ir parduokite{" "}
             <span className="text-brand">skaitmeninius produktus</span> lietuviškai
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-lg text-muted">
             Šablonai, presetai, e-knygos, kursai — sukurti kūrėjų iš Lietuvos.
-            Netrukus startuojame. Palik el. paštą ir sužinok pirmas.
+            Netrukus startuojame. Palikite el. paštą ir sužinokite pirmi.
           </p>
           <WaitlistForm />
           <p className="mt-4 text-xs text-muted">
@@ -101,7 +101,7 @@ export default function Home() {
 
       {/* Kategorijos */}
       <section className="mx-auto max-w-6xl px-4 pb-4 sm:px-6">
-        <h2 className="text-2xl font-bold tracking-tight">Ką čia rasi</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Ką čia rasite</h2>
         <p className="mt-2 text-sm text-muted">Kategorijos, kuriose kūrėjai galės parduoti.</p>
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {categories.map((c) => (
@@ -120,7 +120,7 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <h2 className="text-2xl font-bold tracking-tight">Ko tikėtis</h2>
         <p className="mt-2 text-sm text-muted">
-          Pavyzdžiai, kokių produktų netrukus galėsi rasti ir parduoti.
+          Pavyzdžiai, kokių produktų netrukus galėsite rasti ir parduoti.
         </p>
         <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
           {examples.map((p) => (
@@ -146,7 +146,7 @@ export default function Home() {
       <section className="border-y border-line bg-surface">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <h2 className="text-center text-2xl font-bold tracking-tight">
-            Parduok savo kūrybą per 3 žingsnius
+            Parduokite savo kūrybą per 3 žingsnius
           </h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {steps.map((s) => (
@@ -189,10 +189,10 @@ export default function Home() {
       <section className="border-t border-line bg-gradient-to-b from-canvas to-brand-soft">
         <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Būk pirmas, kai startuosim
+            Būkite pirmi, kai startuosime
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-muted">
-            Palik el. paštą — pranešim, kai galėsi pradėti pirkti ir parduoti.
+            Palikite el. paštą — pranešime, kai galėsite pradėti pirkti ir parduoti.
           </p>
           <WaitlistForm />
         </div>

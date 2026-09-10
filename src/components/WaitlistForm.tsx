@@ -20,9 +20,9 @@ export default function WaitlistForm() {
     return (
       <div className="mx-auto mt-8 max-w-md rounded-xl border border-line bg-surface p-6 text-center">
         <p className="text-2xl">🎉</p>
-        <p className="mt-2 font-semibold">Ačiū! Esi sąraše.</p>
+        <p className="mt-2 font-semibold">Ačiū! Esate sąraše.</p>
         <p className="mt-1 text-sm text-muted">
-          Pranešim tau pirmiems, kai digiduktas startuos.
+          Pranešime jums pirmiems, kai digiduktas startuos.
         </p>
       </div>
     );
@@ -54,7 +54,7 @@ export default function WaitlistForm() {
           name="email"
           type="email"
           required
-          placeholder="tavo@paštas.lt"
+          placeholder="vardas@pastas.lt"
           className="flex-1 rounded-lg border border-line bg-surface px-4 py-3 text-sm outline-none transition-colors focus:border-brand"
         />
         <button
@@ -62,7 +62,7 @@ export default function WaitlistForm() {
           disabled={pending}
           className="rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark disabled:opacity-60"
         >
-          {pending ? "Palauk…" : "Pranešti man"}
+          {pending ? "Palaukite…" : "Pranešti man"}
         </button>
       </div>
 

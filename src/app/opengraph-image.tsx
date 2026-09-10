@@ -43,7 +43,7 @@ export default function Image() {
           <span style={{ color: "#f97316" }}>duktas</span>
         </div>
         <div style={{ display: "flex", fontSize: 34, color: "#78716c", marginTop: 22 }}>
-          Pirk ir parduok skaitmeninius produktus
+          Pirkite ir parduokite skaitmeninius produktus
         </div>
         <div
           style={{

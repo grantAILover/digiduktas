@@ -16,12 +16,12 @@ export default function AuthPage() {
   return (
     <div className="mx-auto flex max-w-md flex-col px-4 py-16 sm:py-24">
       <h1 className="text-center text-2xl font-bold tracking-tight">
-        {isRegister ? "Sukurk paskyrą" : "Prisijunk"}
+        {isRegister ? "Sukurkite paskyrą" : "Prisijunkite"}
       </h1>
       <p className="mt-2 text-center text-sm text-muted">
         {isRegister
-          ? "Registruokis, kad galėtum pirkti ir parduoti."
-          : "Sveikas sugrįžęs į digiduktas."}
+          ? "Registruokitės, kad galėtumėte pirkti ir parduoti."
+          : "Sveiki sugrįžę į digiduktas."}
       </p>
 
       <form action={formAction} className="mt-8 flex flex-col gap-4">
@@ -33,7 +33,7 @@ export default function AuthPage() {
             <input
               name="display_name"
               type="text"
-              placeholder="Kaip tave vadinti?"
+              placeholder="Kaip jus vadinti?"
               className="rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none transition-colors focus:border-brand"
             />
           </label>
@@ -46,7 +46,7 @@ export default function AuthPage() {
             type="email"
             required
             autoComplete="email"
-            placeholder="tavo@paštas.lt"
+            placeholder="vardas@pastas.lt"
             className="rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none transition-colors focus:border-brand"
           />
         </label>
@@ -81,7 +81,7 @@ export default function AuthPage() {
           className="mt-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark disabled:opacity-60"
         >
           {pending
-            ? "Palauk…"
+            ? "Palaukite…"
             : isRegister
               ? "Registruotis"
               : "Prisijungti"}
@@ -91,22 +91,22 @@ export default function AuthPage() {
       <div className="mt-6 text-center text-sm text-muted">
         {isRegister ? (
           <>
-            Jau turi paskyrą?{" "}
+            Jau turite paskyrą?{" "}
             <button
               onClick={() => setMode("login")}
               className="font-medium text-brand hover:text-brand-dark"
             >
-              Prisijunk
+              Prisijunkite
             </button>
           </>
         ) : (
           <>
-            Neturi paskyros?{" "}
+            Neturite paskyros?{" "}
             <button
               onClick={() => setMode("register")}
               className="font-medium text-brand hover:text-brand-dark"
             >
-              Registruokis
+              Registruokitės
             </button>
           </>
         )}

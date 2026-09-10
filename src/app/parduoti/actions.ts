@@ -15,13 +15,13 @@ export async function applySeller(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Pirma prisijunk." };
+  if (!user) return { error: "Pirma prisijunkite." };
 
   const full_name = String(formData.get("full_name") ?? "").trim();
   const about = String(formData.get("about") ?? "").trim();
   const portfolio_url = String(formData.get("portfolio_url") ?? "").trim();
 
-  if (!full_name) return { error: "Įrašyk savo vardą." };
+  if (!full_name) return { error: "Įrašykite savo vardą." };
 
   const { error } = await supabase.from("seller_applications").insert({
     user_id: user.id,
@@ -30,7 +30,7 @@ export async function applySeller(
     portfolio_url: portfolio_url || null,
   });
 
-  if (error) return { error: "Nepavyko pateikti paraiškos. Bandyk dar kartą." };
+  if (error) return { error: "Nepavyko pateikti paraiškos. Bandykite dar kartą." };
 
   revalidatePath("/parduoti");
   redirect("/parduoti");
@@ -67,7 +67,7 @@ export async function createProduct(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Pirma prisijunk." };
+  if (!user) return { error: "Pirma prisijunkite." };
 
   // Tik patvirtinti pardavėjai gali kurti
   const { data: profile } = await supabase
@@ -76,12 +76,12 @@ export async function createProduct(
     .eq("id", user.id)
     .single();
   if (!profile?.is_seller) {
-    return { error: "Tavo pardavėjo paraiška dar nepatvirtinta." };
+    return { error: "Jūsų pardavėjo paraiška dar nepatvirtinta." };
   }
 
   const title = input.title.trim();
-  if (!title) return { error: "Įrašyk pavadinimą." };
-  if (!input.filePath) return { error: "Įkelk parduodamą failą." };
+  if (!title) return { error: "Įrašykite pavadinimą." };
+  if (!input.filePath) return { error: "Įkelkite parduodamą failą." };
 
   const normalized = input.priceEur.replace(",", ".");
   const priceCents = Math.round(parseFloat(normalized) * 100);

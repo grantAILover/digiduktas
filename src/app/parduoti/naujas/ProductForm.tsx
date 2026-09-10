@@ -31,15 +31,15 @@ export default function ProductForm() {
       const coverFile = fd.get("cover") as File | null;
       const productFile = fd.get("file") as File | null;
 
-      if (!title) throw new Error("Įrašyk pavadinimą.");
+      if (!title) throw new Error("Įrašykite pavadinimą.");
       if (!productFile || productFile.size === 0)
-        throw new Error("Pasirink parduodamą failą.");
+        throw new Error("Pasirinkite parduodamą failą.");
 
       const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("Sesija baigėsi. Prisijunk iš naujo.");
+      if (!user) throw new Error("Sesija baigėsi. Prisijunkite iš naujo.");
 
       // 1. Viršelis (nebūtina) → viešas 'covers' bucket'as
       let coverImageUrl: string | null = null;
