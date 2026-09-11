@@ -18,7 +18,8 @@ async function getProduct(slug: string) {
     )
     .eq("slug", slug)
     .maybeSingle();
-  if (!data || data.status !== "live") return null;
+  // RLS grąžina ne-'live' produktą tik savininkui/adminui, tad papildomo tikrinimo nereikia
+  if (!data) return null;
   const seller: Seller | null = Array.isArray(data.profiles)
     ? (data.profiles[0] ?? null)
     : data.profiles;
@@ -52,6 +53,16 @@ export default async function ProduktasPage({
       <Link href="/produktai" className="text-sm text-muted hover:text-ink">
         ← Atgal į produktus
       </Link>
+
+      {p.status !== "live" && (
+        <div className="mt-4 rounded-lg border border-brand/30 bg-brand-soft px-4 py-3 text-sm text-brand-dark">
+          {p.status === "pending"
+            ? "Šis produktas dar laukia patvirtinimo — matomas tik jums."
+            : p.status === "suspended"
+              ? "Šis produktas sustabdytas — matomas tik jums."
+              : "Šis produktas nepaskelbtas — matomas tik jums."}
+        </div>
+      )}
 
       <div className="mt-6 grid gap-8 md:grid-cols-2">
         {/* Viršelis */}

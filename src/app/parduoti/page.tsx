@@ -80,9 +80,10 @@ export default async function ParduotiPage() {
             {products.map((p) => {
               const s = statusLabels[p.status] ?? statusLabels.draft;
               return (
-                <div
+                <Link
                   key={p.id}
-                  className="flex items-center justify-between gap-4 rounded-xl border border-line bg-surface p-4"
+                  href={`/produktas/${p.slug}`}
+                  className="flex items-center justify-between gap-4 rounded-xl border border-line bg-surface p-4 transition-all hover:border-brand hover:shadow-sm"
                 >
                   <div className="min-w-0">
                     <h3 className="truncate font-semibold">{p.title}</h3>
@@ -94,7 +95,7 @@ export default async function ParduotiPage() {
                       {s.text}
                     </span>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
