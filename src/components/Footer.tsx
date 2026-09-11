@@ -12,6 +12,17 @@ export default function Footer() {
           Lietuviška vieta pirkti ir parduoti skaitmeninius produktus. Netrukus
           startuojame.
         </p>
+        <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted">
+          <a href="/produktai" className="transition-colors hover:text-ink">
+            Naršyti
+          </a>
+          <a href="/kaip-veikia" className="transition-colors hover:text-ink">
+            Kaip veikia
+          </a>
+          <a href="/parduoti" className="transition-colors hover:text-ink">
+            Parduoti
+          </a>
+        </nav>
         <p className="text-xs text-muted">
           © {new Date().getFullYear()} digiduktas · Sukurta Lietuvoje 🇱🇹
         </p>

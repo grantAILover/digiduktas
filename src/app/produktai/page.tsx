@@ -29,7 +29,7 @@ export default async function ProduktaiPage({
   let query = supabase
     .from("products")
     .select(
-      "slug, title, price_cents, category, cover_image_url, profiles:seller_id(display_name, is_verified)",
+      "slug, title, price_cents, category, cover_image_url, created_at, profiles:seller_id(display_name, is_verified)",
     )
     .eq("status", "live");
   if (kategorija) query = query.eq("category", kategorija);
@@ -45,6 +45,7 @@ export default async function ProduktaiPage({
     price_cents: p.price_cents,
     category: p.category,
     cover_image_url: p.cover_image_url,
+    created_at: p.created_at,
     seller: Array.isArray(p.profiles) ? (p.profiles[0] ?? null) : p.profiles,
   }));
 

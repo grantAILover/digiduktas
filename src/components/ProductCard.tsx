@@ -21,8 +21,14 @@ export type ProductCardData = {
   price_cents: number;
   category: string | null;
   cover_image_url: string | null;
+  created_at?: string | null;
   seller: { display_name: string | null; is_verified: boolean } | null;
 };
+
+function isNew(created_at?: string | null) {
+  if (!created_at) return false;
+  return Date.now() - new Date(created_at).getTime() < 7 * 24 * 60 * 60 * 1000;
+}
 
 export default function ProductCard({ p }: { p: ProductCardData }) {
   return (
@@ -30,7 +36,12 @@ export default function ProductCard({ p }: { p: ProductCardData }) {
       href={`/produktas/${p.slug}`}
       className="group flex flex-col overflow-hidden rounded-xl border border-line bg-surface transition-all hover:-translate-y-0.5 hover:shadow-md"
     >
-      <div className="aspect-[4/3] overflow-hidden bg-brand-soft">
+      <div className="relative aspect-[4/3] overflow-hidden bg-brand-soft">
+        {isNew(p.created_at) && (
+          <span className="absolute left-2 top-2 z-10 rounded-md bg-brand px-2 py-0.5 text-[10px] font-semibold text-surface">
+            Naujas
+          </span>
+        )}
         {p.cover_image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

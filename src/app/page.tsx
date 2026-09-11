@@ -1,4 +1,7 @@
+import Link from "next/link";
 import WaitlistForm from "@/components/WaitlistForm";
+import ProductCard, { type ProductCardData } from "@/components/ProductCard";
+import { createClient } from "@/lib/supabase/server";
 
 const categories = [
   { emoji: "🎨", name: "Grafika ir dizainas" },
@@ -65,7 +68,26 @@ const faq = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: newestRaw } = await supabase
+    .from("products")
+    .select(
+      "slug, title, price_cents, category, cover_image_url, created_at, profiles:seller_id(display_name, is_verified)",
+    )
+    .eq("status", "live")
+    .order("created_at", { ascending: false })
+    .limit(4);
+  const newest: ProductCardData[] = (newestRaw ?? []).map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    price_cents: p.price_cents,
+    category: p.category,
+    cover_image_url: p.cover_image_url,
+    created_at: p.created_at,
+    seller: Array.isArray(p.profiles) ? (p.profiles[0] ?? null) : p.profiles,
+  }));
+
   return (
     <div>
       {/* Hero */}
@@ -98,6 +120,26 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* Naujausi produktai (jei jau yra) */}
+      {newest.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold tracking-tight">Naujausi produktai</h2>
+            <Link
+              href="/produktai"
+              className="text-sm font-medium text-brand hover:text-brand-dark"
+            >
+              Žiūrėti visus →
+            </Link>
+          </div>
+          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {newest.map((p) => (
+              <ProductCard key={p.slug} p={p} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Kategorijos */}
       <section className="mx-auto max-w-6xl px-4 pb-4 sm:px-6">

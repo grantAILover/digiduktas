@@ -15,7 +15,7 @@ async function getSeller(id: string) {
 
   const { data: products } = await supabase
     .from("products")
-    .select("slug, title, price_cents, category, cover_image_url")
+    .select("slug, title, price_cents, category, cover_image_url, created_at")
     .eq("seller_id", id)
     .eq("status", "live")
     .order("created_at", { ascending: false });
@@ -50,35 +50,39 @@ export default async function KurejasPage({ params }: PageProps<"/kurejas/[id]">
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      {/* Profilio antraštė */}
-      <div className="flex items-center gap-4">
-        <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-brand text-2xl font-bold text-surface">
-          {profile.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={profile.avatar_url}
-              alt={name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            initial
+      {/* Profilio antraštė su baneriu */}
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+        <div className="h-24 bg-gradient-to-r from-brand-soft via-brand/15 to-brand-soft" />
+        <div className="px-6 pb-6">
+          <div className="-mt-8 flex items-end gap-4">
+            <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-brand text-2xl font-bold text-surface ring-4 ring-surface">
+              {profile.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profile.avatar_url}
+                  alt={name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                initial
+              )}
+            </div>
+            <div className="pb-1">
+              <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+                {name}
+                {profile.is_verified && <VerifiedBadge />}
+              </h1>
+              <p className="text-sm text-muted">
+                {products.length}{" "}
+                {products.length === 1 ? "produktas" : "produktai"} · Narys nuo {year}
+              </p>
+            </div>
+          </div>
+          {profile.bio && (
+            <p className="mt-4 max-w-2xl text-sm text-muted">{profile.bio}</p>
           )}
         </div>
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-            {name}
-            {profile.is_verified && <VerifiedBadge />}
-          </h1>
-          <p className="text-sm text-muted">
-            {products.length} {products.length === 1 ? "produktas" : "produktai"} ·
-            Narys nuo {year}
-          </p>
-        </div>
       </div>
-
-      {profile.bio && (
-        <p className="mt-4 max-w-2xl text-sm text-muted">{profile.bio}</p>
-      )}
 
       {/* Produktai */}
       <div className="mt-10">
