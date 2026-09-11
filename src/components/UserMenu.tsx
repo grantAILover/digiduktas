@@ -1,14 +1,19 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { logout } from "@/app/auth/actions";
 
 export default function UserMenu({
   displayName,
   avatarUrl,
+  userId,
+  isAdmin,
 }: {
   displayName: string;
   avatarUrl: string | null;
+  userId: string;
+  isAdmin: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -23,8 +28,12 @@ export default function UserMenu({
 
   const initial = displayName.charAt(0).toUpperCase();
 
-  // Placeholder shortcut'ai — kol kas neveikia (tik vizualiai)
-  const items = ["Mano produktai", "Mano pirkiniai", "Nustatymai"];
+  const items = [
+    { label: "Mano produktai", href: "/parduoti" },
+    { label: "Mano profilis", href: `/kurejas/${userId}` },
+    { label: "Nustatymai", href: "/nustatymai" },
+    ...(isAdmin ? [{ label: "Admin", href: "/admin" }] : []),
+  ];
 
   return (
     <div ref={ref} className="relative">
@@ -48,14 +57,15 @@ export default function UserMenu({
             <p className="truncate text-sm font-semibold">{displayName}</p>
           </div>
           <nav className="flex flex-col py-1 text-sm">
-            {items.map((label) => (
-              <button
-                key={label}
-                type="button"
+            {items.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
                 className="px-4 py-2 text-left transition-colors hover:bg-brand-soft"
               >
-                {label}
-              </button>
+                {item.label}
+              </Link>
             ))}
           </nav>
           <div className="border-t border-line">

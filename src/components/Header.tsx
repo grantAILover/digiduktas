@@ -10,14 +10,16 @@ export default async function Header() {
 
   let displayName = "Paskyra";
   let avatarUrl: string | null = null;
+  let isAdmin = false;
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("display_name, avatar_url")
+      .select("display_name, avatar_url, is_admin")
       .eq("id", user.id)
       .single();
     displayName = profile?.display_name ?? user.email?.split("@")[0] ?? "Paskyra";
     avatarUrl = profile?.avatar_url ?? null;
+    isAdmin = profile?.is_admin ?? false;
   }
 
   return (
@@ -31,7 +33,14 @@ export default async function Header() {
         </Link>
 
         <div className="flex items-center gap-2">
-          {user && <UserMenu displayName={displayName} avatarUrl={avatarUrl} />}
+          {user && (
+            <UserMenu
+              displayName={displayName}
+              avatarUrl={avatarUrl}
+              userId={user.id}
+              isAdmin={isAdmin}
+            />
+          )}
         </div>
       </div>
     </header>
