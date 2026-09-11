@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProductCard, { type ProductCardData, VerifiedBadge } from "@/components/ProductCard";
 
+export const dynamic = "force-dynamic";
+
 async function getSeller(id: string) {
   const supabase = await createClient();
   const { data: profile } = await supabase

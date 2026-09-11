@@ -5,6 +5,8 @@ import { categoryName } from "@/lib/categories";
 import { VerifiedBadge, eur } from "@/components/ProductCard";
 import ReportButton from "./ReportButton";
 
+export const dynamic = "force-dynamic";
+
 type Seller = { display_name: string | null; is_verified: boolean };
 
 async function getProduct(slug: string) {

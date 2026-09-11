@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CATEGORIES } from "@/lib/categories";
 import ProductCard, { type ProductCardData } from "@/components/ProductCard";
+import SearchSort from "./SearchSort";
 
 export const metadata = {
   title: "Produktai",
@@ -21,6 +22,8 @@ export default async function ProduktaiPage({
 }: PageProps<"/produktai">) {
   const sp = await searchParams;
   const kategorija = typeof sp.kategorija === "string" ? sp.kategorija : null;
+  const q = typeof sp.q === "string" ? sp.q.trim() : "";
+  const rikiuoti = typeof sp.rikiuoti === "string" ? sp.rikiuoti : "naujausi";
 
   const supabase = await createClient();
   let query = supabase
@@ -28,9 +31,12 @@ export default async function ProduktaiPage({
     .select(
       "slug, title, price_cents, category, cover_image_url, profiles:seller_id(display_name, is_verified)",
     )
-    .eq("status", "live")
-    .order("created_at", { ascending: false });
+    .eq("status", "live");
   if (kategorija) query = query.eq("category", kategorija);
+  if (q) query = query.ilike("title", `%${q}%`);
+  if (rikiuoti === "pigiausi") query = query.order("price_cents", { ascending: true });
+  else if (rikiuoti === "brangiausi") query = query.order("price_cents", { ascending: false });
+  else query = query.order("created_at", { ascending: false });
 
   const { data } = await query;
   const products: ProductCardData[] = ((data as RawRow[]) ?? []).map((p) => ({
@@ -45,6 +51,8 @@ export default async function ProduktaiPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <h1 className="text-2xl font-bold tracking-tight">Produktai</h1>
+
+      <SearchSort q={q} kategorija={kategorija} rikiuoti={rikiuoti} />
 
       {/* Kategorijų filtras */}
       <div className="mt-5 flex flex-wrap gap-2">
@@ -76,10 +84,14 @@ export default async function ProduktaiPage({
       {/* Sąrašas */}
       {products.length === 0 ? (
         <div className="mt-10 rounded-xl border border-dashed border-line bg-surface p-12 text-center">
-          <p className="text-4xl">🌱</p>
-          <p className="mt-3 font-medium">Kol kas produktų čia nėra</p>
+          <p className="text-4xl">{q ? "🔍" : "🌱"}</p>
+          <p className="mt-3 font-medium">
+            {q ? `Nieko nerasta pagal „${q}"` : "Kol kas produktų čia nėra"}
+          </p>
           <p className="mt-1 text-sm text-muted">
-            Pirmieji kūrėjai jau ruošiami — netrukus čia bus ką atrasti.
+            {q
+              ? "Pabandykite kitą paiešką arba kategoriją."
+              : "Pirmieji kūrėjai jau ruošiami — netrukus čia bus ką atrasti."}
           </p>
         </div>
       ) : (
