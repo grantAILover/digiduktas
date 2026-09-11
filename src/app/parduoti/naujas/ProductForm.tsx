@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CATEGORIES } from "@/lib/categories";
@@ -15,6 +15,19 @@ export default function ProductForm() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<string>("");
+  const [dots, setDots] = useState("");
+
+  // Animuoti taškai, kad nesijaustų užstrigę
+  useEffect(() => {
+    if (!busy) {
+      setDots("");
+      return;
+    }
+    const id = setInterval(() => {
+      setDots((d) => (d.length >= 3 ? "" : d + "."));
+    }, 400);
+    return () => clearInterval(id);
+  }, [busy]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -44,25 +57,25 @@ export default function ProductForm() {
       // 1. Viršelis (nebūtina) → viešas 'covers' bucket'as
       let coverImageUrl: string | null = null;
       if (coverFile && coverFile.size > 0) {
-        setProgress("Keliamas viršelis…");
+        setProgress("Keliamas viršelis");
         const path = `${user.id}/${crypto.randomUUID()}-${safeName(coverFile.name)}`;
         const { error: upErr } = await supabase.storage
           .from("covers")
           .upload(path, coverFile);
-        if (upErr) throw new Error("Nepavyko įkelti viršelio.");
+        if (upErr) throw new Error(`Nepavyko įkelti viršelio: ${upErr.message}`);
         coverImageUrl = supabase.storage.from("covers").getPublicUrl(path).data.publicUrl;
       }
 
       // 2. Parduodamas failas → privatus 'product-files' bucket'as
-      setProgress("Keliamas failas…");
+      setProgress("Keliamas failas");
       const filePath = `${user.id}/${crypto.randomUUID()}-${safeName(productFile.name)}`;
       const { error: fileErr } = await supabase.storage
         .from("product-files")
         .upload(filePath, productFile);
-      if (fileErr) throw new Error("Nepavyko įkelti failo.");
+      if (fileErr) throw new Error(`Nepavyko įkelti failo: ${fileErr.message}`);
 
       // 3. Įrašom produktą per server action
-      setProgress("Išsaugoma…");
+      setProgress("Išsaugoma");
       const res = await createProduct({
         title,
         description,
@@ -170,7 +183,7 @@ export default function ProductForm() {
         disabled={busy}
         className="mt-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark disabled:opacity-60"
       >
-        {busy ? progress || "Keliama…" : "Įkelti produktą"}
+        {busy ? `${progress || "Keliama"}${dots}` : "Įkelti produktą"}
       </button>
     </form>
   );
