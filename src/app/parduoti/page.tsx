@@ -49,7 +49,7 @@ export default async function ParduotiPage() {
   if (profile?.is_seller) {
     const { data: products } = await supabase
       .from("products")
-      .select("id, title, slug, price_cents, category, status, created_at")
+      .select("id, title, slug, price_cents, category, cover_image_url, status, created_at")
       .eq("seller_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -85,9 +85,23 @@ export default async function ParduotiPage() {
                   href={`/produktas/${p.slug}`}
                   className="flex items-center justify-between gap-4 rounded-xl border border-line bg-surface p-4 transition-all hover:border-brand hover:shadow-sm"
                 >
-                  <div className="min-w-0">
-                    <h3 className="truncate font-semibold">{p.title}</h3>
-                    <p className="text-xs text-muted">{categoryName(p.category)}</p>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-brand-soft text-xl">
+                      {p.cover_image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={p.cover_image_url}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        "🗂️"
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="truncate font-semibold">{p.title}</h3>
+                      <p className="text-xs text-muted">{categoryName(p.category)}</p>
+                    </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     <span className="font-semibold text-brand">{eur(p.price_cents)}</span>

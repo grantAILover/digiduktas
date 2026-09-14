@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { categoryName } from "@/lib/categories";
-import { VerifiedBadge, eur } from "@/components/ProductCard";
+import ProductCard, { VerifiedBadge, eur, type ProductCardData } from "@/components/ProductCard";
 import ReportButton from "./ReportButton";
 
 export const dynamic = "force-dynamic";
@@ -48,6 +48,23 @@ export default async function ProduktasPage({
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Daugiau iš to paties kūrėjo
+  const { data: moreRaw } = await supabase
+    .from("products")
+    .select("slug, title, price_cents, category, cover_image_url, created_at")
+    .eq("seller_id", p.seller_id)
+    .eq("status", "live")
+    .neq("slug", slug)
+    .order("created_at", { ascending: false })
+    .limit(4);
+  const more: ProductCardData[] = (moreRaw ?? []).map((m) => ({
+    ...m,
+    seller: {
+      display_name: p.seller?.display_name ?? null,
+      is_verified: p.seller?.is_verified ?? false,
+    },
+  }));
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <Link href="/produktai" className="text-sm text-muted hover:text-ink">
@@ -82,9 +99,12 @@ export default async function ProduktasPage({
         {/* Info */}
         <div className="flex flex-col">
           {p.category && (
-            <span className="w-fit rounded-md bg-brand-soft px-2 py-0.5 text-xs font-medium text-brand-dark">
+            <Link
+              href={`/produktai?kategorija=${p.category}`}
+              className="w-fit rounded-md bg-brand-soft px-2 py-0.5 text-xs font-medium text-brand-dark transition-colors hover:bg-brand hover:text-surface"
+            >
               {categoryName(p.category)}
-            </span>
+            </Link>
           )}
           <h1 className="mt-3 text-2xl font-bold tracking-tight">{p.title}</h1>
 
@@ -122,6 +142,25 @@ export default async function ProduktasPage({
           <ReportButton productId={p.id} isLoggedIn={!!user} />
         </div>
       </div>
+
+      {more.length > 0 && (
+        <section className="mt-14 border-t border-line pt-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold tracking-tight">Daugiau iš šio kūrėjo</h2>
+            <Link
+              href={`/kurejas/${p.seller_id}`}
+              className="text-sm font-medium text-brand hover:text-brand-dark"
+            >
+              Visi →
+            </Link>
+          </div>
+          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {more.map((m) => (
+              <ProductCard key={m.slug} p={m} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
