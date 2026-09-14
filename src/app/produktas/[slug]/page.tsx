@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { categoryName } from "@/lib/categories";
 import ProductCard, { VerifiedBadge, eur, type ProductCardData } from "@/components/ProductCard";
 import ReportButton from "./ReportButton";
+import { createCheckout } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -38,8 +39,10 @@ export async function generateMetadata({ params }: PageProps<"/produktas/[slug]"
 
 export default async function ProduktasPage({
   params,
+  searchParams,
 }: PageProps<"/produktas/[slug]">) {
   const { slug } = await params;
+  const sp = await searchParams;
   const p = await getProduct(slug);
   if (!p) notFound();
 
@@ -47,6 +50,7 @@ export default async function ProduktasPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const isOwner = user?.id === p.seller_id;
 
   // Daugiau iš to paties kūrėjo
   const { data: moreRaw } = await supabase
@@ -70,6 +74,12 @@ export default async function ProduktasPage({
       <Link href="/produktai" className="text-sm text-muted hover:text-ink">
         ← Atgal į produktus
       </Link>
+
+      {sp?.pirkta === "1" && (
+        <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+          ✓ Ačiū! Apmokėjimas gautas. (Automatinį failo pristatymą pridėsime netrukus.)
+        </div>
+      )}
 
       {p.status !== "live" && (
         <div className="mt-4 rounded-lg border border-brand/30 bg-brand-soft px-4 py-3 text-sm text-brand-dark">
@@ -119,15 +129,29 @@ export default async function ProduktasPage({
             {eur(p.price_cents)}
           </p>
 
-          <button
-            type="button"
-            disabled
-            className="mt-4 w-full cursor-not-allowed rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-surface opacity-60 sm:w-auto"
-          >
-            Pirkti — netrukus
-          </button>
+          {sp?.err === "seller" && (
+            <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+              Šis pardavėjas dar nepriima mokėjimų. Pabandykite vėliau.
+            </p>
+          )}
+
+          {isOwner ? (
+            <p className="mt-4 rounded-lg border border-line bg-canvas px-4 py-3 text-sm text-muted">
+              Tai jūsų produktas.
+            </p>
+          ) : (
+            <form action={createCheckout}>
+              <input type="hidden" name="productId" value={p.id} />
+              <button
+                type="submit"
+                className="mt-4 w-full rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark sm:w-auto"
+              >
+                Pirkti — {eur(p.price_cents)}
+              </button>
+            </form>
+          )}
           <p className="mt-2 text-xs text-muted">
-            Mokėjimai bus įjungti netrukus. Po apmokėjimo failą gausite iškart.
+            Saugus apmokėjimas per Stripe. Po apmokėjimo failą gausite iškart.
           </p>
 
           {p.description && (

@@ -9,6 +9,12 @@ export function getStripe(): Stripe {
   return _stripe;
 }
 
+// Platformos komisija (kol kas 10%). Ankstyviems pardavėjams galima 0%.
+export const PLATFORM_FEE_RATE = 0.1;
+export function platformFee(cents: number): number {
+  return Math.round(cents * PLATFORM_FEE_RATE);
+}
+
 export type PayoutStatus = "none" | "pending" | "active";
 
 // Ar pardavėjo Stripe paskyra gali gauti išmokas?

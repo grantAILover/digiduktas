@@ -1,6 +1,64 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getStripe, getPayoutStatus, platformFee } from "@/lib/stripe";
+
+export type ReportState = { ok?: boolean; error?: string } | null;
+
+// Sukuria Stripe Checkout sesiją (destination charge + komisija) ir nukreipia
+export async function createCheckout(formData: FormData) {
+  const productId = String(formData.get("productId") ?? "");
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/auth");
+
+  const { data: product } = await supabase
+    .from("products")
+    .select("id, title, slug, price_cents, status, seller_id, profiles:seller_id(stripe_account_id)")
+    .eq("id", productId)
+    .maybeSingle();
+
+  if (!product || product.status !== "live") redirect("/produktai");
+  if (product.seller_id === user.id) redirect(`/produktas/${product.slug}?err=own`);
+
+  const seller = Array.isArray(product.profiles)
+    ? product.profiles[0]
+    : product.profiles;
+  const sellerAccount = seller?.stripe_account_id;
+  if (!sellerAccount || (await getPayoutStatus(sellerAccount)) !== "active") {
+    redirect(`/produktas/${product.slug}?err=seller`);
+  }
+
+  const site = process.env.NEXT_PUBLIC_SITE_URL;
+  const meta = { product_id: product.id, buyer_id: user.id };
+  const session = await getStripe().checkout.sessions.create({
+    mode: "payment",
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "eur",
+          unit_amount: product.price_cents,
+          product_data: { name: product.title },
+        },
+      },
+    ],
+    payment_intent_data: {
+      application_fee_amount: platformFee(product.price_cents),
+      transfer_data: { destination: sellerAccount },
+      metadata: meta,
+    },
+    metadata: meta,
+    customer_email: user.email ?? undefined,
+    success_url: `${site}/produktas/${product.slug}?pirkta=1`,
+    cancel_url: `${site}/produktas/${product.slug}`,
+  });
+
+  redirect(session.url!);
+}
 
 export type ReportState = { ok?: boolean; error?: string } | null;
 
