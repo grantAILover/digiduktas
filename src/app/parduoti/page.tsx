@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { categoryName } from "@/lib/categories";
+import { getPayoutStatus } from "@/lib/stripe";
 import SellerApplicationForm from "./SellerApplicationForm";
+import { connectStripe } from "./stripe-actions";
 
 const statusLabels: Record<string, { text: string; cls: string }> = {
   draft: { text: "Juodraštis", cls: "bg-line text-ink" },
@@ -41,17 +43,20 @@ export default async function ParduotiPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("is_seller")
+    .select("is_seller, stripe_account_id")
     .eq("id", user.id)
     .single();
 
   // 2. Patvirtintas pardavėjas → dashboardas
   if (profile?.is_seller) {
-    const { data: products } = await supabase
-      .from("products")
-      .select("id, title, slug, price_cents, category, cover_image_url, status, created_at")
-      .eq("seller_id", user.id)
-      .order("created_at", { ascending: false });
+    const [{ data: products }, payout] = await Promise.all([
+      supabase
+        .from("products")
+        .select("id, title, slug, price_cents, category, cover_image_url, status, created_at")
+        .eq("seller_id", user.id)
+        .order("created_at", { ascending: false }),
+      getPayoutStatus(profile.stripe_account_id),
+    ]);
 
     return (
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
@@ -64,6 +69,32 @@ export default async function ParduotiPage() {
             + Naujas produktas
           </Link>
         </div>
+
+        {/* Išmokų (Stripe) statusas */}
+        {payout === "active" ? (
+          <div className="mt-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+            ✓ Išmokos prijungtos — galėsite gauti pinigus už pardavimus.
+          </div>
+        ) : (
+          <div className="mt-6 flex flex-col gap-3 rounded-xl border border-line bg-brand-soft p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold text-ink">
+                {payout === "pending"
+                  ? "Užbaikite išmokų nustatymą"
+                  : "Prijunkite išmokas"}
+              </p>
+              <p className="mt-0.5 text-sm text-muted">
+                Kad gautumėte pinigus už pardavimus, prijunkite Stripe (banko
+                sąskaitą, tapatybę).
+              </p>
+            </div>
+            <form action={connectStripe}>
+              <button className="w-full rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark sm:w-auto">
+                {payout === "pending" ? "Tęsti" : "Prijungti išmokas"}
+              </button>
+            </form>
+          </div>
+        )}
 
         {!products?.length ? (
           <div className="mt-8 rounded-xl border border-dashed border-line bg-surface p-10 text-center">
