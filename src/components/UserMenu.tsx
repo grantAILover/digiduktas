@@ -29,6 +29,7 @@ export default function UserMenu({
   const initial = displayName.charAt(0).toUpperCase();
 
   const items = [
+    { label: "Mano pirkiniai", href: "/pirkiniai" },
     { label: "Mano produktai", href: "/parduoti" },
     { label: "Mano profilis", href: `/kurejas/${userId}` },
     { label: "Nustatymai", href: "/nustatymai" },

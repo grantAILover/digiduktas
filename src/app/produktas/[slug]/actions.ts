@@ -53,7 +53,7 @@ export async function createCheckout(formData: FormData) {
     },
     metadata: meta,
     customer_email: user.email ?? undefined,
-    success_url: `${site}/produktas/${product.slug}?pirkta=1`,
+    success_url: `${site}/pirkiniai?pirkta=1`,
     cancel_url: `${site}/produktas/${product.slug}`,
   });
 
