@@ -1,10 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getStripe, getPayoutStatus, platformFee } from "@/lib/stripe";
-
-export type ReportState = { ok?: boolean; error?: string } | null;
 
 // Sukuria Stripe Checkout sesiją (destination charge + komisija) ir nukreipia
 export async function createCheckout(formData: FormData) {
@@ -87,5 +86,43 @@ export async function reportProduct(
   });
 
   if (error) return { error: "Nepavyko išsiųsti. Bandykite dar kartą." };
+  return { ok: true };
+}
+
+export type ReviewState = { ok?: boolean; error?: string } | null;
+
+export async function addReview(
+  _prev: ReviewState,
+  formData: FormData,
+): Promise<ReviewState> {
+  const productId = String(formData.get("productId") ?? "");
+  const slug = String(formData.get("slug") ?? "");
+  const rating = parseInt(String(formData.get("rating") ?? ""), 10);
+  const comment = String(formData.get("comment") ?? "").trim();
+
+  if (!productId) return { error: "Įvyko klaida." };
+  if (!(rating >= 1 && rating <= 5)) {
+    return { error: "Pasirinkite įvertinimą (1–5 žvaigždutės)." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Prisijunkite." };
+
+  const { error } = await supabase.from("reviews").insert({
+    product_id: productId,
+    buyer_id: user.id,
+    rating,
+    comment: comment || null,
+  });
+
+  if (error) {
+    if (error.code === "23505") return { error: "Jau palikote atsiliepimą." };
+    return { error: "Nepavyko. Atsiliepimą gali palikti tik pirkęs šį produktą." };
+  }
+
+  if (slug) revalidatePath(`/produktas/${slug}`);
   return { ok: true };
 }

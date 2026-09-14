@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { categoryName } from "@/lib/categories";
 import ProductCard, { VerifiedBadge, eur, type ProductCardData } from "@/components/ProductCard";
 import ReportButton from "./ReportButton";
+import ReviewForm from "./ReviewForm";
 import { createCheckout } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -69,6 +70,32 @@ export default async function ProduktasPage({
     },
   }));
 
+  // Atsiliepimai
+  const { data: reviewsRaw } = await supabase
+    .from("reviews")
+    .select("rating, comment, created_at, buyer_id, profiles:buyer_id(display_name)")
+    .eq("product_id", p.id)
+    .order("created_at", { ascending: false });
+  const reviews = reviewsRaw ?? [];
+  const reviewCount = reviews.length;
+  const avg = reviewCount
+    ? reviews.reduce((s, r) => s + r.rating, 0) / reviewCount
+    : 0;
+  const hasReviewed = !!user && reviews.some((r) => r.buyer_id === user.id);
+
+  let hasPurchased = false;
+  if (user && !isOwner) {
+    const { count } = await supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("buyer_id", user.id)
+      .eq("product_id", p.id)
+      .eq("status", "paid");
+    hasPurchased = (count ?? 0) > 0;
+  }
+  const canReview = !!user && !isOwner && hasPurchased && !hasReviewed;
+  const stars = (n: number) => "★".repeat(n) + "☆".repeat(5 - n);
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <Link href="/produktai" className="text-sm text-muted hover:text-ink">
@@ -125,6 +152,15 @@ export default async function ProduktasPage({
             {p.seller?.is_verified && <VerifiedBadge />}
           </p>
 
+          {reviewCount > 0 && (
+            <p className="mt-1 text-sm text-brand">
+              {stars(Math.round(avg))}{" "}
+              <span className="text-muted">
+                {avg.toFixed(1)} ({reviewCount})
+              </span>
+            </p>
+          )}
+
           <p className="mt-6 text-3xl font-bold text-brand">
             {eur(p.price_cents)}
           </p>
@@ -166,6 +202,44 @@ export default async function ProduktasPage({
           <ReportButton productId={p.id} isLoggedIn={!!user} />
         </div>
       </div>
+
+      {/* Atsiliepimai */}
+      <section className="mt-14 border-t border-line pt-8">
+        <h2 className="text-lg font-bold tracking-tight">
+          Atsiliepimai{" "}
+          {reviewCount > 0 && <span className="text-muted">({reviewCount})</span>}
+        </h2>
+
+        {canReview && <ReviewForm productId={p.id} slug={slug} />}
+        {user && !isOwner && !hasPurchased && (
+          <p className="mt-3 text-sm text-muted">
+            Atsiliepimą galėsite palikti nusipirkę šį produktą.
+          </p>
+        )}
+
+        {reviewCount === 0 ? (
+          <p className="mt-3 text-sm text-muted">Kol kas atsiliepimų nėra.</p>
+        ) : (
+          <div className="mt-6 flex flex-col gap-4">
+            {reviews.map((r, i) => {
+              const rn = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;
+              return (
+                <div key={i} className="rounded-xl border border-line bg-surface p-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-brand">{stars(r.rating)}</span>
+                    <span className="text-sm font-medium">
+                      {rn?.display_name ?? "Pirkėjas"}
+                    </span>
+                  </div>
+                  {r.comment && (
+                    <p className="mt-2 text-sm text-muted">{r.comment}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       {more.length > 0 && (
         <section className="mt-14 border-t border-line pt-8">
