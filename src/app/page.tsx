@@ -81,6 +81,15 @@ export default function Home() {
           <p className="mt-4 text-xs text-muted">
             Be spamo. Vienas laiškas, kai atidarysime duris.
           </p>
+          <div className="mt-6">
+            <a
+              href="/naujienos"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-brand hover:text-brand"
+            >
+              Kas jau veikia? Peržiūrėti naujienas
+              <span aria-hidden>→</span>
+            </a>
+          </div>
         </div>
       </section>
 
