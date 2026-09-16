@@ -4,6 +4,7 @@ import { categoryName } from "@/lib/categories";
 import { getPayoutStatus } from "@/lib/stripe";
 import SellerApplicationForm from "./SellerApplicationForm";
 import { connectStripe } from "./stripe-actions";
+import DeleteProductButton from "./DeleteProductButton";
 
 const statusLabels: Record<string, { text: string; cls: string }> = {
   draft: { text: "Juodraštis", cls: "bg-line text-ink" },
@@ -111,10 +112,9 @@ export default async function ParduotiPage() {
             {products.map((p) => {
               const s = statusLabels[p.status] ?? statusLabels.draft;
               return (
-                <Link
+                <div
                   key={p.id}
-                  href={`/produktas/${p.slug}`}
-                  className="flex items-center justify-between gap-4 rounded-xl border border-line bg-surface p-4 transition-all hover:border-brand hover:shadow-sm"
+                  className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-brand-soft text-xl">
@@ -130,17 +130,33 @@ export default async function ParduotiPage() {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <h3 className="truncate font-semibold">{p.title}</h3>
-                      <p className="text-xs text-muted">{categoryName(p.category)}</p>
+                      <Link
+                        href={`/produktas/${p.slug}`}
+                        className="block truncate font-semibold hover:text-brand"
+                      >
+                        {p.title}
+                      </Link>
+                      <p className="mt-0.5 flex items-center gap-2 text-xs text-muted">
+                        {categoryName(p.category)}
+                        <span className={`rounded-md px-1.5 py-0.5 font-medium ${s.cls}`}>
+                          {s.text}
+                        </span>
+                      </p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <span className="font-semibold text-brand">{eur(p.price_cents)}</span>
-                    <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${s.cls}`}>
-                      {s.text}
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="mr-1 font-semibold text-brand">
+                      {eur(p.price_cents)}
                     </span>
+                    <Link
+                      href={`/parduoti/${p.id}/redaguoti`}
+                      className="rounded-md border border-line px-3 py-1.5 text-xs font-medium transition-colors hover:bg-brand-soft"
+                    >
+                      Redaguoti
+                    </Link>
+                    <DeleteProductButton productId={p.id} />
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>
