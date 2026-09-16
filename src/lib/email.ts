@@ -21,7 +21,7 @@ export async function sendOrderConfirmation(opts: {
       digi<span style="color:#f97316">duktas</span>
     </div>
     <div style="border:1px solid #e7e5e4;border-radius:12px;padding:24px;background:#ffffff">
-      <p style="font-size:16px;margin:0 0 8px">Ačiū už pirkinį! 🎉</p>
+      <p style="font-size:16px;margin:0 0 8px">Ačiū už pirkinį!</p>
       <p style="color:#78716c;margin:0 0 16px">Jūsų apmokėjimas gautas. Pirkinį rasite savo paskyroje.</p>
       <table style="width:100%;border-collapse:collapse;margin:8px 0 20px">
         <tr>

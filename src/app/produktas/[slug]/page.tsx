@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { categoryName } from "@/lib/categories";
-import ProductCard, { VerifiedBadge, eur, type ProductCardData } from "@/components/ProductCard";
+import ProductCard, { VerifiedBadge, eur, CoverPlaceholder, type ProductCardData } from "@/components/ProductCard";
 import ReportButton from "./ReportButton";
 import ReviewForm from "./ReviewForm";
 import { createCheckout } from "./actions";
@@ -104,7 +104,7 @@ export default async function ProduktasPage({
 
       {sp?.pirkta === "1" && (
         <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-          ✓ Ačiū! Apmokėjimas gautas. (Automatinį failo pristatymą pridėsime netrukus.)
+          Ačiū! Apmokėjimas gautas. Pirkinį rasite skiltyje „Mano pirkiniai".
         </div>
       )}
 
@@ -129,7 +129,9 @@ export default async function ProduktasPage({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="grid h-full place-items-center text-6xl">🗂️</div>
+            <div className="grid h-full place-items-center">
+              <CoverPlaceholder />
+            </div>
           )}
         </div>
 

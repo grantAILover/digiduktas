@@ -19,8 +19,7 @@ export default function WaitlistForm() {
   if (state?.ok) {
     return (
       <div className="mx-auto mt-8 max-w-md rounded-xl border border-line bg-surface p-6 text-center">
-        <p className="text-2xl">🎉</p>
-        <p className="mt-2 font-semibold">Ačiū! Esate sąraše.</p>
+        <p className="font-semibold">Ačiū! Esate sąraše.</p>
         <p className="mt-1 text-sm text-muted">
           Pranešime jums pirmiems, kai digiduktas startuos.
         </p>

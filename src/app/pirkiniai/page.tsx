@@ -33,7 +33,7 @@ export default async function PirkiniaiPage({
 
       {sp?.pirkta === "1" && (
         <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-          ✓ Ačiū! Apmokėjimas gautas. Jūsų pirkinys žemiau.
+          Ačiū! Apmokėjimas gautas. Jūsų pirkinys žemiau.
         </div>
       )}
       {sp?.klaida && (
@@ -44,8 +44,7 @@ export default async function PirkiniaiPage({
 
       {rows.length === 0 ? (
         <div className="mt-10 rounded-xl border border-dashed border-line bg-surface p-12 text-center">
-          <p className="text-4xl">🛍️</p>
-          <p className="mt-3 font-medium">Dar nieko nepirkote</p>
+          <p className="font-medium">Dar nieko nepirkote</p>
           <Link
             href="/produktai"
             className="mt-4 inline-block rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"

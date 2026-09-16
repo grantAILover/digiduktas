@@ -5,6 +5,7 @@ import { getPayoutStatus } from "@/lib/stripe";
 import SellerApplicationForm from "./SellerApplicationForm";
 import { connectStripe } from "./stripe-actions";
 import DeleteProductButton from "./DeleteProductButton";
+import { CoverPlaceholder } from "@/components/ProductCard";
 
 const statusLabels: Record<string, { text: string; cls: string }> = {
   draft: { text: "Juodraštis", cls: "bg-line text-ink" },
@@ -74,7 +75,7 @@ export default async function ParduotiPage() {
         {/* Išmokų (Stripe) statusas */}
         {payout === "active" ? (
           <div className="mt-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-            ✓ Išmokos prijungtos — galėsite gauti pinigus už pardavimus.
+            Išmokos prijungtos — galėsite gauti pinigus už pardavimus.
           </div>
         ) : (
           <div className="mt-6 flex flex-col gap-3 rounded-xl border border-line bg-brand-soft p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -126,7 +127,7 @@ export default async function ParduotiPage() {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        "🗂️"
+                        <CoverPlaceholder />
                       )}
                     </div>
                     <div className="min-w-0">
@@ -177,8 +178,7 @@ export default async function ParduotiPage() {
   if (application?.status === "pending") {
     return (
       <div className="mx-auto max-w-md px-4 py-20 text-center">
-        <p className="text-4xl">⏳</p>
-        <h1 className="mt-4 text-2xl font-bold tracking-tight">Paraiška gauta</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Paraiška gauta</h1>
         <p className="mt-3 text-muted">
           Peržiūrime jūsų paraišką tapti pardavėju. Pranešime, kai patvirtinsime.
         </p>

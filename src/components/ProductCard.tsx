@@ -15,6 +15,26 @@ export function eur(cents: number) {
   return (cents / 100).toFixed(2).replace(".", ",") + " €";
 }
 
+// Monochrominė „paveiksliuko" ikona, kai produktas neturi viršelio
+export function CoverPlaceholder() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-8 w-8 text-brand/40"
+      aria-hidden="true"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="m21 15-5-5L5 21" />
+    </svg>
+  );
+}
+
 export type ProductCardData = {
   slug: string;
   title: string;
@@ -51,7 +71,9 @@ export default function ProductCard({ p }: { p: ProductCardData }) {
             className="h-full w-full object-cover transition-transform group-hover:scale-105"
           />
         ) : (
-          <div className="grid h-full place-items-center text-4xl">🗂️</div>
+          <div className="grid h-full place-items-center">
+            <CoverPlaceholder />
+          </div>
         )}
       </div>
       <div className="flex flex-1 flex-col p-4">

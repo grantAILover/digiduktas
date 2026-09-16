@@ -77,7 +77,7 @@ export default async function ProduktaiPage({
                 : "border-line bg-surface hover:border-brand"
             }`}
           >
-            {c.emoji} {c.name}
+            {c.name}
           </Link>
         ))}
       </div>
@@ -85,8 +85,7 @@ export default async function ProduktaiPage({
       {/* Sąrašas */}
       {products.length === 0 ? (
         <div className="mt-10 rounded-xl border border-dashed border-line bg-surface p-12 text-center">
-          <p className="text-4xl">{q ? "🔍" : "🌱"}</p>
-          <p className="mt-3 font-medium">
+          <p className="font-medium">
             {q ? `Nieko nerasta pagal „${q}"` : "Kol kas produktų čia nėra"}
           </p>
           <p className="mt-1 text-sm text-muted">

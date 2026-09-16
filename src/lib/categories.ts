@@ -1,10 +1,10 @@
 export const CATEGORIES = [
-  { slug: "grafika", name: "Grafika ir dizainas", emoji: "🎨" },
-  { slug: "sablonai", name: "Šablonai", emoji: "📄" },
-  { slug: "presetai", name: "Presetai ir filtrai", emoji: "📸" },
-  { slug: "e-knygos", name: "E-knygos ir gidai", emoji: "📚" },
-  { slug: "kursai", name: "Kursai", emoji: "🎓" },
-  { slug: "muzika", name: "Muzika ir garsai", emoji: "🎵" },
+  { slug: "grafika", name: "Grafika ir dizainas" },
+  { slug: "sablonai", name: "Šablonai" },
+  { slug: "presetai", name: "Presetai ir filtrai" },
+  { slug: "e-knygos", name: "E-knygos ir gidai" },
+  { slug: "kursai", name: "Kursai" },
+  { slug: "muzika", name: "Muzika ir garsai" },
 ] as const;
 
 export type CategorySlug = (typeof CATEGORIES)[number]["slug"];

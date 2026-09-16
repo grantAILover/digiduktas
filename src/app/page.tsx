@@ -1,39 +1,37 @@
 import WaitlistForm from "@/components/WaitlistForm";
+import { CoverPlaceholder } from "@/components/ProductCard";
 
 const categories = [
-  { emoji: "🎨", name: "Grafika ir dizainas" },
-  { emoji: "📄", name: "Šablonai" },
-  { emoji: "📸", name: "Presetai ir filtrai" },
-  { emoji: "📚", name: "E-knygos ir gidai" },
-  { emoji: "🎓", name: "Kursai" },
-  { emoji: "🎵", name: "Muzika ir garsai" },
+  { name: "Grafika ir dizainas" },
+  { name: "Šablonai" },
+  { name: "Presetai ir filtrai" },
+  { name: "E-knygos ir gidai" },
+  { name: "Kursai" },
+  { name: "Muzika ir garsai" },
 ];
 
 const values = [
   {
-    emoji: "🇱🇹",
     title: "Sukurta Lietuvai",
     text: "Lietuviški kūrėjai, lietuviškas turinys ir aiškios kainos eurais — be užsienio tarpininkų.",
   },
   {
-    emoji: "💸",
     title: "Pinigai tiesiai jums",
     text: "Parduokite savo kūrybą, o uždarbis keliauja tiesiai į jūsų banko sąskaitą. Komisija maža ir aiški.",
   },
   {
-    emoji: "🔒",
     title: "Saugu abiem pusėm",
     text: "Pirkėjas gauna failą iškart po apmokėjimo per apsaugotą nuorodą. Jokių rūpesčių.",
   },
 ];
 
 const examples = [
-  { emoji: "🗂️", title: "Notion ir Excel šablonai", tag: "Šablonai" },
-  { emoji: "🌅", title: "Lightroom presetų rinkiniai", tag: "Presetai" },
-  { emoji: "📄", title: "CV ir dokumentų šablonai", tag: "Šablonai" },
-  { emoji: "🎧", title: "Muzika, garsai ir efektai", tag: "Muzika" },
-  { emoji: "🖼️", title: "Iliustracijos ir ikonos", tag: "Grafika" },
-  { emoji: "🎓", title: "Vaizdo kursai ir gidai", tag: "Kursai" },
+  { title: "Notion ir Excel šablonai", tag: "Šablonai" },
+  { title: "Lightroom presetų rinkiniai", tag: "Presetai" },
+  { title: "CV ir dokumentų šablonai", tag: "Šablonai" },
+  { title: "Muzika, garsai ir efektai", tag: "Muzika" },
+  { title: "Iliustracijos ir ikonos", tag: "Grafika" },
+  { title: "Vaizdo kursai ir gidai", tag: "Kursai" },
 ];
 
 const steps = [
@@ -91,8 +89,7 @@ export default function Home() {
         <div className="grid gap-6 sm:grid-cols-3">
           {values.map((v) => (
             <div key={v.title} className="rounded-xl border border-line bg-surface p-6">
-              <span className="text-3xl">{v.emoji}</span>
-              <h3 className="mt-4 text-lg font-semibold">{v.title}</h3>
+              <h3 className="text-lg font-semibold">{v.title}</h3>
               <p className="mt-2 text-sm text-muted">{v.text}</p>
             </div>
           ))}
@@ -107,9 +104,8 @@ export default function Home() {
           {categories.map((c) => (
             <div
               key={c.name}
-              className="flex flex-col items-center gap-2 rounded-xl border border-line bg-surface p-5 text-center"
+              className="flex items-center justify-center rounded-xl border border-line bg-surface p-5 text-center"
             >
-              <span className="text-3xl">{c.emoji}</span>
               <span className="text-sm font-medium">{c.name}</span>
             </div>
           ))}
@@ -128,8 +124,8 @@ export default function Home() {
               key={p.title}
               className="flex flex-col overflow-hidden rounded-xl border border-line bg-surface"
             >
-              <div className="grid aspect-[5/2] place-items-center bg-brand-soft text-5xl">
-                {p.emoji}
+              <div className="grid aspect-[5/2] place-items-center bg-brand-soft">
+                <CoverPlaceholder />
               </div>
               <div className="flex items-center justify-between gap-2 p-4">
                 <h3 className="text-sm font-semibold">{p.title}</h3>

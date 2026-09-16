@@ -117,7 +117,7 @@ export default function SettingsForm({
 
       {msg?.ok && (
         <p className="rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand-dark">
-          Išsaugota! ✓
+          Išsaugota!
         </p>
       )}
       {msg?.error && (

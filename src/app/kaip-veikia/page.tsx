@@ -44,22 +44,22 @@ export default function KaipVeikiaPage() {
       </p>
 
       <section className="mt-12">
-        <h2 className="text-xl font-bold tracking-tight">🛍️ Pirkėjams</h2>
+        <h2 className="text-xl font-bold tracking-tight">Pirkėjams</h2>
         <Steps steps={buyerSteps} />
       </section>
 
       <section className="mt-12">
-        <h2 className="text-xl font-bold tracking-tight">💸 Pardavėjams</h2>
+        <h2 className="text-xl font-bold tracking-tight">Pardavėjams</h2>
         <Steps steps={sellerSteps} />
       </section>
 
       <section className="mt-12 rounded-xl border border-line bg-brand-soft p-6">
         <h2 className="text-lg font-semibold">Kodėl digiduktas?</h2>
         <ul className="mt-3 flex flex-col gap-2 text-sm text-muted">
-          <li>🇱🇹 Sukurta Lietuvai — lietuviškas turinys ir kainos eurais.</li>
-          <li>🔒 Saugu — failą gaunate tik po apmokėjimo, per apsaugotą nuorodą.</li>
-          <li>✓ Patikimi kūrėjai — patvirtinti pardavėjai ir Verified ženklas.</li>
-          <li>💸 Sąžininga — kiek parduodate, tiek uždirbate, maža komisija.</li>
+          <li>Sukurta Lietuvai — lietuviškas turinys ir kainos eurais.</li>
+          <li>Saugu — failą gaunate tik po apmokėjimo, per apsaugotą nuorodą.</li>
+          <li>Patikimi kūrėjai — patvirtinti pardavėjai ir „Verified" ženklas.</li>
+          <li>Sąžininga — kiek parduodate, tiek uždirbate, maža komisija.</li>
         </ul>
       </section>
 

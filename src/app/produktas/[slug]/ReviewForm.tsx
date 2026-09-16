@@ -19,7 +19,7 @@ export default function ReviewForm({
   if (state?.ok) {
     return (
       <p className="mt-4 rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand-dark">
-        Ačiū už atsiliepimą! ✓
+        Ačiū už atsiliepimą!
       </p>
     );
   }

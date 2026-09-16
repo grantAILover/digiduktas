@@ -24,7 +24,7 @@ export default function Footer() {
           </a>
         </nav>
         <p className="text-xs text-muted">
-          © {new Date().getFullYear()} digiduktas · Sukurta Lietuvoje 🇱🇹
+          © {new Date().getFullYear()} digiduktas · Sukurta Lietuvoje
         </p>
       </div>
     </footer>
