@@ -3,6 +3,7 @@ import crypto from "crypto";
 import Stripe from "stripe";
 import { getStripe, platformFee } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendOrderConfirmation } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -51,7 +52,7 @@ async function fulfill(session: Stripe.Checkout.Session) {
 
   const { data: product } = await supabase
     .from("products")
-    .select("price_cents")
+    .select("price_cents, title")
     .eq("id", productId)
     .single();
   if (!product) return;
@@ -79,4 +80,12 @@ async function fulfill(session: Stripe.Checkout.Session) {
   await supabase
     .from("downloads")
     .insert({ order_id: order.id, token, expires_at: expires });
+
+  // Patvirtinimo laiškas pirkėjui (nekritinis)
+  const buyerEmail = session.customer_details?.email ?? session.customer_email;
+  await sendOrderConfirmation({
+    to: buyerEmail,
+    productTitle: product.title,
+    priceCents: price,
+  });
 }
