@@ -19,6 +19,9 @@ export default function Footer() {
           <a href="/kaip-veikia" className="transition-colors hover:text-ink">
             Kaip veikia
           </a>
+          <a href="/naujienos" className="transition-colors hover:text-ink">
+            Naujienos
+          </a>
           <a href="/parduoti" className="transition-colors hover:text-ink">
             Parduoti
           </a>
