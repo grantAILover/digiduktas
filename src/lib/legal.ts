@@ -1,0 +1,25 @@
+// ─────────────────────────────────────────────────────────────
+// Operatoriaus (svetainės valdytojo) duomenys — vienoje vietoje.
+// Užpildykite laužtinius [ ] laukus savo tikrais duomenimis.
+// Šiuos duomenis naudoja visi 3 teisiniai dokumentai.
+// ─────────────────────────────────────────────────────────────
+export const OPERATOR = {
+  // Prekės ženklas / svetainė
+  brand: "digiduktas",
+  site: "digiduktas.lt",
+
+  // Individuali veikla — UŽPILDYKITE:
+  legalName: "[Vardas Pavardė]",
+  activityNo: "[individualios veiklos pažymos Nr.]",
+  // (nebūtina) veiklos adresas korespondencijai:
+  address: "[adresas, jei norite nurodyti]",
+
+  // Kontaktai
+  email: "labas@digiduktas.lt",
+
+  // Komisija (%)
+  commissionPct: 10,
+} as const;
+
+// Paskutinio atnaujinimo data (rodoma dokumentų viršuje).
+export const LEGAL_UPDATED = "2026 m. rugsėjo 16 d.";

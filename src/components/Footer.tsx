@@ -26,6 +26,17 @@ export default function Footer() {
             Parduoti
           </a>
         </nav>
+        <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted">
+          <a href="/privatumas" className="transition-colors hover:text-ink">
+            Privatumo politika
+          </a>
+          <a href="/taisykles" className="transition-colors hover:text-ink">
+            Naudojimosi taisyklės
+          </a>
+          <a href="/grazinimai" className="transition-colors hover:text-ink">
+            Grąžinimų tvarka
+          </a>
+        </nav>
         <p className="text-xs text-muted">
           © {new Date().getFullYear()} digiduktas · Sukurta Lietuvoje
         </p>

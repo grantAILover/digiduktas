@@ -22,9 +22,10 @@ type Entry = {
 // ─────────────────────────────────────────────────────────────
 const entries: Entry[] = [
   {
-    status: "wip",
+    status: "done",
+    date: "2026-09-16",
     title: "Teisiniai dokumentai",
-    desc: "Privatumo politika, taisyklės ir grąžinimų tvarka — ruošiama prieš viešą startą.",
+    desc: "Privatumo politika, naudojimosi taisyklės ir grąžinimų tvarka.",
   },
   {
     status: "done",
