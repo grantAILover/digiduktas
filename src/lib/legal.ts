@@ -14,8 +14,8 @@ export const OPERATOR = {
   // (nebūtina) veiklos adresas korespondencijai:
   address: "[adresas, jei norite nurodyti]",
 
-  // Kontaktai
-  email: "labas@digiduktas.lt",
+  // Kontaktai — laikinai asmeninis paštas (kol nesukurta info@digiduktas.lt dėžutė).
+  email: "grantas626@gmail.com",
 
   // Komisija (%)
   commissionPct: 10,
