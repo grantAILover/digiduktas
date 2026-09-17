@@ -13,6 +13,7 @@ export type UpdateProductInput = {
   priceEur: string;
   category: string;
   coverImageUrl?: string | null;
+  previewImages?: string[]; // jei nurodyta — pakeičia visą peržiūrų sąrašą
 };
 
 export async function updateProduct(
@@ -40,6 +41,7 @@ export async function updateProduct(
     updated_at: new Date().toISOString(),
   };
   if (input.coverImageUrl) patch.cover_image_url = input.coverImageUrl;
+  if (input.previewImages) patch.preview_images = input.previewImages.slice(0, 7);
 
   // RLS: products_update_own → tik savininkas
   const { error } = await supabase

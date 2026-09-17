@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { categoryName } from "@/lib/categories";
-import ProductCard, { VerifiedBadge, eur, CoverPlaceholder, type ProductCardData } from "@/components/ProductCard";
+import ProductCard, { VerifiedBadge, eur, type ProductCardData } from "@/components/ProductCard";
+import ProductGallery from "@/components/ProductGallery";
 import ReportButton from "./ReportButton";
 import ReviewForm from "./ReviewForm";
 import { createCheckout } from "./actions";
@@ -16,7 +17,7 @@ async function getProduct(slug: string) {
   const { data } = await supabase
     .from("products")
     .select(
-      "id, seller_id, title, description, price_cents, category, cover_image_url, status, profiles:seller_id(display_name, is_verified)",
+      "id, seller_id, title, description, price_cents, category, cover_image_url, preview_images, status, profiles:seller_id(display_name, is_verified)",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -119,21 +120,14 @@ export default async function ProduktasPage({
       )}
 
       <div className="mt-6 grid gap-8 md:grid-cols-2">
-        {/* Viršelis */}
-        <div className="aspect-[4/3] overflow-hidden rounded-xl border border-line bg-brand-soft">
-          {p.cover_image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={p.cover_image_url}
-              alt={p.title}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="grid h-full place-items-center">
-              <CoverPlaceholder />
-            </div>
-          )}
-        </div>
+        {/* Galerija: viršelis + peržiūros nuotraukos */}
+        <ProductGallery
+          images={[
+            p.cover_image_url,
+            ...((Array.isArray(p.preview_images) ? p.preview_images : []) as string[]),
+          ].filter(Boolean) as string[]}
+          title={p.title}
+        />
 
         {/* Info */}
         <div className="flex flex-col">

@@ -43,6 +43,7 @@ export type CreateProductInput = {
   priceEur: string;
   category: string;
   coverImageUrl: string | null;
+  previewImages?: string[];
   filePath: string;
 };
 
@@ -102,6 +103,7 @@ export async function createProduct(
     price_cents: priceCents,
     category: input.category || null,
     cover_image_url: input.coverImageUrl,
+    preview_images: (input.previewImages ?? []).slice(0, 7),
     file_path: input.filePath,
     status, // verified → 'live', kiti → 'pending' (peržiūra)
   });

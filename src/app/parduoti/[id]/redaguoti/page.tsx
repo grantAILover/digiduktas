@@ -17,7 +17,7 @@ export default async function RedaguotiPage({
 
   const { data: product } = await supabase
     .from("products")
-    .select("id, title, description, price_cents, category, cover_image_url, seller_id")
+    .select("id, title, description, price_cents, category, cover_image_url, preview_images, seller_id")
     .eq("id", id)
     .maybeSingle();
 
