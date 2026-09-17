@@ -64,12 +64,20 @@ export default async function ParduotiPage() {
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Mano produktai</h1>
-          <Link
-            href="/parduoti/naujas"
-            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
-          >
-            + Naujas produktas
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/parduoti/statistika"
+              className="rounded-lg border border-line px-4 py-2 text-sm font-medium transition-colors hover:bg-brand-soft"
+            >
+              Statistika
+            </Link>
+            <Link
+              href="/parduoti/naujas"
+              className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
+            >
+              + Naujas produktas
+            </Link>
+          </div>
         </div>
 
         {/* Išmokų (Stripe) statusas */}
