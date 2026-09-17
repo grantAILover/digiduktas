@@ -23,6 +23,12 @@ type Entry = {
 const entries: Entry[] = [
   {
     status: "done",
+    date: "2026-09-17",
+    title: "Kūrėjo pardavimų statistika",
+    desc: "Pardavėjai mato uždarbį, pardavimų skaičių, mėnesių grafiką ir pardavimus pagal produktą.",
+  },
+  {
+    status: "done",
     date: "2026-09-16",
     title: "Teisiniai dokumentai",
     desc: "Privatumo politika, naudojimosi taisyklės ir grąžinimų tvarka.",
@@ -84,11 +90,6 @@ const entries: Entry[] = [
 ];
 
 const planned: Entry[] = [
-  {
-    status: "planned",
-    title: "Kūrėjo pardavimų statistika",
-    desc: "Skydelis su pardavimais, uždarbiu ir populiariausiais produktais.",
-  },
   {
     status: "planned",
     title: "Pardavimo pranešimai pardavėjui",
