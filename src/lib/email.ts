@@ -1,6 +1,8 @@
 import { Resend } from "resend";
 
 const FROM = process.env.EMAIL_FROM || "digiduktas <onboarding@resend.dev>";
+// Kur nukeliauja pirkėjo atsakymai (siuntimo domenas dar neturi dėžutės).
+const REPLY_TO = process.env.EMAIL_REPLY_TO;
 
 // Pirkėjo patvirtinimo laiškas. Jei RESEND_API_KEY nenustatytas — tyliai praleidžia
 // (kad nesulaužytų webhook'o). Klaidos irgi nekritinės.
@@ -44,6 +46,7 @@ export async function sendOrderConfirmation(opts: {
     await new Resend(key).emails.send({
       from: FROM,
       to: opts.to,
+      ...(REPLY_TO ? { replyTo: REPLY_TO } : {}),
       subject: `Ačiū už pirkinį — ${opts.productTitle}`,
       html,
     });
