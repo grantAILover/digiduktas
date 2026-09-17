@@ -6,7 +6,7 @@ import { joinWaitlist, type WaitlistState } from "@/app/actions";
 const roles = [
   { value: "seller", label: "Noriu parduoti" },
   { value: "buyer", label: "Noriu pirkti" },
-  { value: "both", label: "Ir tai, ir tai" },
+  { value: "both", label: "Abu" },
 ] as const;
 
 export default function WaitlistForm() {
