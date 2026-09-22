@@ -8,9 +8,9 @@ export const OPERATOR = {
   brand: "digiduktas",
   site: "digiduktas.lt",
 
-  // Individuali veikla — UŽPILDYKITE:
-  legalName: "[Vardas Pavardė]",
-  activityNo: "[individualios veiklos pažymos Nr.]",
+  // Individuali veikla:
+  legalName: "Grantas Liaudanskas",
+  activityNo: "1547835",
   // (nebūtina) veiklos adresas korespondencijai:
   address: "[adresas, jei norite nurodyti]",
 
