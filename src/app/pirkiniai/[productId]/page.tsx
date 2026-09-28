@@ -51,12 +51,16 @@ export default async function PirkinysPage({ params }: PageProps<"/pirkiniai/[pr
   const initialFileId =
     lastListened?.product_file_id ?? files.find((f) => isViewable(f.kind))?.id ?? files[0]?.id ?? null;
 
-  const backHref = role === "buyer" ? "/pirkiniai" : "/parduoti";
+  const back = {
+    buyer: { href: "/pirkiniai", label: "Mano pirkiniai" },
+    owner: { href: "/parduoti", label: "Mano produktai" },
+    admin: { href: "/admin", label: "Admin" },
+  }[role];
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <Link href={backHref} className="text-sm text-muted hover:text-ink">
-        ← {role === "buyer" ? "Mano pirkiniai" : "Mano produktai"}
+      <Link href={back.href} className="text-sm text-muted hover:text-ink">
+        ← {back.label}
       </Link>
       <h1 className="mt-3 text-2xl font-bold tracking-tight">{product.title}</h1>
 

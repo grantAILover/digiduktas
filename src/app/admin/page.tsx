@@ -45,7 +45,7 @@ export default async function AdminPage() {
         .order("created_at", { ascending: true }),
       supabase
         .from("products")
-        .select("id, title, price_cents, category, file_path, created_at, profiles:seller_id(display_name)")
+        .select("id, title, price_cents, category, created_at, profiles:seller_id(display_name)")
         .eq("status", "pending")
         .order("created_at", { ascending: true }),
       supabase
@@ -65,19 +65,10 @@ export default async function AdminPage() {
         .order("created_at", { ascending: true }),
     ]);
 
-  // Pasirašytos nuorodos peržiūrėti pending produktų failus
-  const pendingWithUrls = await Promise.all(
-    (pending ?? []).map(async (p) => {
-      let fileUrl: string | null = null;
-      if (p.file_path) {
-        const { data } = await supabase.storage
-          .from("product-files")
-          .createSignedUrl(p.file_path, 3600);
-        fileUrl = data?.signedUrl ?? null;
-      }
-      return { ...p, fileUrl };
-    }),
-  );
+  // Failus adminas žiūri per viewer'į (/pirkiniai/[id]) — jis rodo VISUS produkto failus
+  // ir pats tikrina admino teises. (Tiesioginė nuoroda vartotojo teisėmis neveikė:
+  // privačiam bucket'ui nėra skaitymo taisyklės.)
+  const pendingWithUrls = pending ?? [];
 
   const btn =
     "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors";
@@ -153,16 +144,13 @@ export default async function AdminPage() {
                       {sellerName(p.profiles)} · {categoryName(p.category)} · {eur(p.price_cents)}
                     </div>
                   </div>
-                  {p.fileUrl && (
-                    <a
-                      href={p.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 text-xs text-brand hover:underline"
-                    >
-                      Peržiūrėti failą ↗
-                    </a>
-                  )}
+                  <Link
+                    href={`/pirkiniai/${p.id}`}
+                    target="_blank"
+                    className="shrink-0 rounded-md border border-line px-3 py-1.5 text-xs font-medium transition-colors hover:bg-brand-soft"
+                  >
+                    Failai ↗
+                  </Link>
                 </div>
                 <div className="mt-3 flex gap-2">
                   <form action={setProductStatus}>
@@ -288,6 +276,13 @@ export default async function AdminPage() {
                   </span>
                 </div>
                 <div className="flex shrink-0 gap-2">
+                  <Link
+                    href={`/pirkiniai/${p.id}`}
+                    target="_blank"
+                    className={`${btn} border border-line hover:bg-brand-soft`}
+                  >
+                    Failai ↗
+                  </Link>
                   {p.status === "live" ? (
                     <form action={setProductStatus}>
                       <input type="hidden" name="productId" value={p.id} />
