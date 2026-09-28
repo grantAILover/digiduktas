@@ -23,6 +23,30 @@ type Entry = {
 const entries: Entry[] = [
   {
     status: "done",
+    date: "2026-09-28",
+    title: "Peržiūra naršyklėje",
+    desc: "Nupirktus PDF galima skaityti, o garso ir vaizdo įrašus klausyti ar žiūrėti tiesiai naršyklėje. Pardavėjas pats pasirenka, ar leisti failą atsisiųsti.",
+  },
+  {
+    status: "done",
+    date: "2026-09-28",
+    title: "Audio knygos ir keli failai viename produkte",
+    desc: "Produkte gali būti keli failai, pvz. audio knygos skyriai jūsų nustatyta tvarka. Klausymas tęsiamas nuo tos vietos, kur baigėte.",
+  },
+  {
+    status: "done",
+    date: "2026-09-22",
+    title: "Realūs mokėjimai",
+    desc: "Mokėjimai veikia tikrais pinigais — galima pirkti ir parduoti.",
+  },
+  {
+    status: "done",
+    date: "2026-09-17",
+    title: "Produkto nuotraukų galerija",
+    desc: "Viršelis ir iki 7 peržiūros nuotraukų — pirkėjas mato, ką gaus, dar prieš pirkdamas.",
+  },
+  {
+    status: "done",
     date: "2026-09-17",
     title: "Kūrėjo pardavimų statistika",
     desc: "Pardavėjai mato uždarbį, pardavimų skaičių, mėnesių grafiką ir pardavimus pagal produktą.",
@@ -99,6 +123,11 @@ const planned: Entry[] = [
     status: "planned",
     title: "Nuolaidų kodai",
     desc: "Galimybė pardavėjams kurti akcijas ir nuolaidų kodus.",
+  },
+  {
+    status: "planned",
+    title: "Sklandesni vaizdo kursai",
+    desc: "Vaizdo įrašai su automatiškai prisitaikančia kokybe — sklandus žiūrėjimas ir lėtesniu internetu.",
   },
 ];
 

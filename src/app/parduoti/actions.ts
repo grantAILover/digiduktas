@@ -1,8 +1,16 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import {
+  checkFileCount,
+  effectiveAllowDownload,
+  toNewFileRow,
+  type NewFileInput,
+  type NewFileRow,
+} from "@/lib/product-files-server";
 
 export type ApplyState = { error?: string } | null;
 
@@ -44,7 +52,8 @@ export type CreateProductInput = {
   category: string;
   coverImageUrl: string | null;
   previewImages?: string[];
-  filePath: string;
+  files: NewFileInput[]; // tvarka = skyrių tvarka
+  allowDownload: boolean;
 };
 
 export type CreateProductResult = { ok?: boolean; slug?: string; error?: string };
@@ -85,7 +94,15 @@ export async function createProduct(
 
   const title = input.title.trim();
   if (!title) return { error: "Įrašykite pavadinimą." };
-  if (!input.filePath) return { error: "Įkelkite parduodamą failą." };
+
+  const countError = checkFileCount(input.files?.length ?? 0);
+  if (countError) return { error: countError };
+  const fileRows: NewFileRow[] = [];
+  for (const f of input.files) {
+    const row = toNewFileRow(user.id, f);
+    if (!row) return { error: "Neteisingas failas. Įkelkite iš naujo." };
+    fileRows.push(row);
+  }
 
   const normalized = input.priceEur.replace(",", ".");
   const priceCents = Math.round(parseFloat(normalized) * 100);
@@ -95,20 +112,37 @@ export async function createProduct(
 
   const slug = `${slugify(title)}-${Math.random().toString(36).slice(2, 7)}`;
 
-  const { error } = await supabase.from("products").insert({
-    seller_id: user.id,
-    title,
-    slug,
-    description: input.description.trim() || null,
-    price_cents: priceCents,
-    category: input.category || null,
-    cover_image_url: input.coverImageUrl,
-    preview_images: (input.previewImages ?? []).slice(0, 7),
-    file_path: input.filePath,
-    status, // verified → 'live', kiti → 'pending' (peržiūra)
-  });
+  const { data: product, error } = await supabase
+    .from("products")
+    .insert({
+      seller_id: user.id,
+      title,
+      slug,
+      description: input.description.trim() || null,
+      price_cents: priceCents,
+      category: input.category || null,
+      cover_image_url: input.coverImageUrl,
+      preview_images: (input.previewImages ?? []).slice(0, 7),
+      file_path: fileRows[0].storage_path, // atgaliniam suderinamumui
+      allow_download: effectiveAllowDownload(
+        !!input.allowDownload,
+        fileRows.map((r) => r.kind),
+      ),
+      status, // verified → 'live', kiti → 'pending' (peržiūra)
+    })
+    .select("id")
+    .single();
 
-  if (error) return { error: "Nepavyko išsaugoti produkto." };
+  if (error || !product) return { error: "Nepavyko išsaugoti produkto." };
+
+  const { error: filesError } = await supabase
+    .from("product_files")
+    .insert(fileRows.map((r, i) => ({ ...r, product_id: product.id, position: i })));
+  if (filesError) {
+    // Be failų produktas beprasmis — atšaukiam (savininkas trinti negali, tad per admin)
+    await createAdminClient().from("products").delete().eq("id", product.id);
+    return { error: "Nepavyko išsaugoti failų. Bandykite dar kartą." };
+  }
 
   revalidatePath("/parduoti");
   return { ok: true, slug };

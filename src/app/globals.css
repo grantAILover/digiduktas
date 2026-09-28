@@ -25,6 +25,13 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Kai pardavėjas neleidžia atsisiųsti — turinys nespausdinamas (Ctrl+P) */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
 body {
   background: var(--canvas);
   color: var(--ink);

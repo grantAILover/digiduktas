@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { categoryName } from "@/lib/categories";
 import ProductCard, { VerifiedBadge, eur, type ProductCardData } from "@/components/ProductCard";
 import ProductGallery from "@/components/ProductGallery";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { KIND_LABEL, isViewable, type FileKind } from "@/lib/files";
 import ReportButton from "./ReportButton";
 import ReviewForm from "./ReviewForm";
 import { createCheckout } from "./actions";
@@ -17,7 +19,7 @@ async function getProduct(slug: string) {
   const { data } = await supabase
     .from("products")
     .select(
-      "id, seller_id, title, description, price_cents, category, cover_image_url, preview_images, status, profiles:seller_id(display_name, is_verified)",
+      "id, seller_id, title, description, price_cents, category, cover_image_url, preview_images, allow_download, status, profiles:seller_id(display_name, is_verified)",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -95,6 +97,15 @@ export default async function ProduktasPage({
     hasPurchased = (count ?? 0) > 0;
   }
   const canReview = !!user && !isOwner && hasPurchased && !hasReviewed;
+
+  // Failų tipai — pirkėjas turi žinoti PRIEŠ pirkdamas (tik tipai, keliai lieka serveryje)
+  const { data: fileKindsRaw } = await createAdminClient()
+    .from("product_files")
+    .select("kind")
+    .eq("product_id", p.id);
+  const fileKinds = (fileKindsRaw ?? []).map((f) => f.kind as FileKind);
+  const kindSummary = [...new Set(fileKinds.map((k) => KIND_LABEL[k]))].join(", ");
+  const viewableInBrowser = fileKinds.some(isViewable);
   const stars = (n: number) => "★".repeat(n) + "☆".repeat(5 - n);
 
   return (
@@ -185,6 +196,24 @@ export default async function ProduktasPage({
           <p className="mt-2 text-xs text-muted">
             Saugus apmokėjimas per Stripe. Po apmokėjimo failą gausite iškart.
           </p>
+
+          {fileKinds.length > 0 && (
+            <ul className="mt-4 flex flex-col gap-1 rounded-lg border border-line bg-surface px-4 py-3 text-sm">
+              <li>
+                <span className="text-muted">Formatas:</span> {kindSummary}
+                {fileKinds.length > 1 && ` (${fileKinds.length} failai)`}
+              </li>
+              {viewableInBrowser && (
+                <li>
+                  <span className="text-muted">Peržiūra naršyklėje:</span> taip
+                </li>
+              )}
+              <li>
+                <span className="text-muted">Atsisiuntimas:</span>{" "}
+                {p.allow_download ? "taip" : "ne — tik peržiūra naršyklėje"}
+              </li>
+            </ul>
+          )}
 
           {p.description && (
             <div className="mt-8 border-t border-line pt-6">

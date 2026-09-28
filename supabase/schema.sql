@@ -218,3 +218,14 @@ create policy "covers_read_all" on storage.objects for select using (bucket_id =
 create policy "covers_insert_auth" on storage.objects for insert to authenticated with check (bucket_id = 'covers');
 create policy "productfiles_insert_own" on storage.objects for insert to authenticated
   with check (bucket_id = 'product-files' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ============================================================
+--  Vėliau pridėti stulpeliai (anksčiau paleisti rankiniu SQL)
+-- ============================================================
+alter table public.profiles add column if not exists is_verified boolean not null default false;
+alter table public.products add column if not exists preview_images jsonb not null default '[]'::jsonb;
+
+-- ============================================================
+--  Tolesni pakeitimai — supabase/migrations/*.sql
+--  Paleisti eilės tvarka PO šio failo (001, 002, ...).
+-- ============================================================

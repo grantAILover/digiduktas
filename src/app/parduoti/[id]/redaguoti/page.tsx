@@ -17,12 +17,21 @@ export default async function RedaguotiPage({
 
   const { data: product } = await supabase
     .from("products")
-    .select("id, title, description, price_cents, category, cover_image_url, preview_images, seller_id")
+    .select(
+      "id, title, description, price_cents, category, cover_image_url, preview_images, allow_download, seller_id",
+    )
     .eq("id", id)
     .maybeSingle();
 
   if (!product) notFound();
   if (product.seller_id !== user.id) redirect("/parduoti");
+
+  // RLS: product_files mato tik savininkas
+  const { data: files } = await supabase
+    .from("product_files")
+    .select("id, file_name, kind, size_bytes")
+    .eq("product_id", id)
+    .order("position", { ascending: true });
 
   return (
     <div className="mx-auto max-w-xl px-4 py-12 sm:px-6">
@@ -30,7 +39,7 @@ export default async function RedaguotiPage({
         ← Atgal
       </Link>
       <h1 className="mt-4 text-2xl font-bold tracking-tight">Redaguoti produktą</h1>
-      <EditProductForm product={product} />
+      <EditProductForm product={product} files={files ?? []} />
     </div>
   );
 }

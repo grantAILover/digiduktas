@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { CATEGORIES } from "@/lib/categories";
 import { createProduct } from "../actions";
 import ProductGallery from "@/components/ProductGallery";
+import ProductFilesEditor, { uploadFileItems, type FileItem } from "@/components/ProductFilesEditor";
+import type { NewFileInput } from "@/lib/product-files-server";
 
 const MAX_PREVIEWS = 7; // + viršelis = iki 8 galerijoje
 
@@ -23,6 +25,8 @@ export default function ProductForm() {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [previewFiles, setPreviewFiles] = useState<File[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [fileItems, setFileItems] = useState<FileItem[]>([]);
+  const [allowDownload, setAllowDownload] = useState(true);
 
   // Animuoti taškai, kad nesijaustų užstrigę
   useEffect(() => {
@@ -67,11 +71,9 @@ export default function ProductForm() {
       const description = String(fd.get("description") ?? "");
       const priceEur = String(fd.get("price") ?? "");
       const category = String(fd.get("category") ?? "");
-      const productFile = fd.get("file") as File | null;
 
       if (!title) throw new Error("Įrašykite pavadinimą.");
-      if (!productFile || productFile.size === 0)
-        throw new Error("Pasirinkite parduodamą failą.");
+      if (fileItems.length === 0) throw new Error("Pasirinkite bent vieną parduodamą failą.");
 
       const supabase = createClient();
       const {
@@ -100,13 +102,10 @@ export default function ProductForm() {
         previewImages.push(await uploadImage(previewFiles[k]));
       }
 
-      // 3. Parduodamas failas → privatus 'product-files' bucket'as
-      setProgress("Keliamas failas");
-      const filePath = `${user.id}/${crypto.randomUUID()}-${safeName(productFile.name)}`;
-      const { error: fileErr } = await supabase.storage
-        .from("product-files")
-        .upload(filePath, productFile);
-      if (fileErr) throw new Error(`Nepavyko įkelti failo: ${fileErr.message}`);
+      // 3. Parduodami failai → privatus 'product-files' bucket'as
+      const uploaded = await uploadFileItems(supabase, user.id, fileItems, (n, total) =>
+        setProgress(total > 1 ? `Keliami failai (${n}/${total})` : "Keliamas failas"),
+      );
 
       // 4. Įrašom produktą per server action
       setProgress("Išsaugoma");
@@ -117,7 +116,8 @@ export default function ProductForm() {
         category,
         coverImageUrl,
         previewImages,
-        filePath,
+        files: uploaded.filter((f): f is NewFileInput => !("id" in f)),
+        allowDownload,
       });
       if (res.error) throw new Error(res.error);
 
@@ -221,18 +221,13 @@ export default function ProductForm() {
         </button>
       )}
 
-      <label className="flex flex-col gap-1.5 text-sm font-medium">
-        Parduodamas failas
-        <input
-          name="file"
-          type="file"
-          required
-          className="rounded-lg border border-line bg-surface px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-brand-soft file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand-dark"
-        />
-        <span className="text-xs text-muted">
-          Failas privatus — pirkėjai gauna jį tik po apmokėjimo.
-        </span>
-      </label>
+      <ProductFilesEditor
+        items={fileItems}
+        onChange={setFileItems}
+        allowDownload={allowDownload}
+        onAllowDownloadChange={setAllowDownload}
+        onError={setError}
+      />
 
       {error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>

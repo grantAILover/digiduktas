@@ -158,6 +158,13 @@ export default async function ParduotiPage() {
                       {eur(p.price_cents)}
                     </span>
                     <Link
+                      href={`/pirkiniai/${p.id}`}
+                      className="rounded-md border border-line px-3 py-1.5 text-xs font-medium transition-colors hover:bg-brand-soft"
+                      title="Kaip failus matys pirkėjas"
+                    >
+                      Failai
+                    </Link>
+                    <Link
                       href={`/parduoti/${p.id}/redaguoti`}
                       className="rounded-md border border-line px-3 py-1.5 text-xs font-medium transition-colors hover:bg-brand-soft"
                     >

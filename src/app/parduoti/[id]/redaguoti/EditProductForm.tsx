@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { CATEGORIES } from "@/lib/categories";
 import { updateProduct } from "../../product-actions";
 import ProductGallery from "@/components/ProductGallery";
+import ProductFilesEditor, { uploadFileItems, type FileItem } from "@/components/ProductFilesEditor";
+import type { FileKind } from "@/lib/files";
 
 const MAX_PREVIEWS = 7;
 
@@ -17,6 +19,7 @@ const inputCls =
 
 export default function EditProductForm({
   product,
+  files,
 }: {
   product: {
     id: string;
@@ -26,8 +29,14 @@ export default function EditProductForm({
     category: string | null;
     cover_image_url: string | null;
     preview_images?: string[] | null;
+    allow_download: boolean;
   };
+  files: { id: string; file_name: string; kind: FileKind; size_bytes: number | null }[];
 }) {
+  const [fileItems, setFileItems] = useState<FileItem[]>(() =>
+    files.map((f) => ({ key: f.id, existingId: f.id, file_name: f.file_name, kind: f.kind, size_bytes: f.size_bytes })),
+  );
+  const [allowDownload, setAllowDownload] = useState(product.allow_download);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(product.cover_image_url);
@@ -110,6 +119,9 @@ export default function EditProductForm({
         previewImages = [...keptPreviews, ...uploaded];
       }
 
+      if (fileItems.length === 0) throw new Error("Palikite bent vieną parduodamą failą.");
+      const uploadedFiles = await uploadFileItems(supabase, user.id, fileItems);
+
       const res = await updateProduct({
         id: product.id,
         title: String(fd.get("title") ?? ""),
@@ -118,6 +130,8 @@ export default function EditProductForm({
         category: String(fd.get("category") ?? ""),
         coverImageUrl,
         previewImages,
+        files: uploadedFiles,
+        allowDownload,
       });
       if (res?.error) throw new Error(res.error);
       // sėkmės atveju updateProduct redirect'ina į /parduoti
@@ -248,9 +262,13 @@ export default function EditProductForm({
         </button>
       )}
 
-      <p className="text-xs text-muted">
-        Parduodamo failo pakeisti negalima — jei reikia kito failo, pašalink produktą ir įkelk naują.
-      </p>
+      <ProductFilesEditor
+        items={fileItems}
+        onChange={setFileItems}
+        allowDownload={allowDownload}
+        onAllowDownloadChange={setAllowDownload}
+        onError={setError}
+      />
 
       {error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
