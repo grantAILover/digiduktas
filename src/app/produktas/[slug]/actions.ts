@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getStripe, getPayoutStatus, platformFee } from "@/lib/stripe";
+import { MIN_PRICE_CENTS } from "@/lib/pricing";
 
 // Sukuria Stripe Checkout sesiją (destination charge + komisija) ir nukreipia
 export async function createCheckout(formData: FormData) {
@@ -23,6 +24,13 @@ export async function createCheckout(formData: FormData) {
   if (!product || product.status !== "live") redirect("/produktai");
   if (product.seller_id === user.id) redirect(`/produktas/${product.slug}?err=own`);
 
+  // ES vartotojų teisė: atsisakymo teisė (14 d.) netaikoma skaitmeniniam turiniui TIK
+  // jei pirkėjas iš anksto aiškiai sutiko. Tikrinam serveryje, ne tik naršyklėje.
+  if (formData.get("consent") !== "on") redirect(`/produktas/${product.slug}?err=consent`);
+
+  // Senesni produktai galėjo būti pigesni už minimalią kainą — tokie būtų nuostolingi
+  if (product.price_cents < MIN_PRICE_CENTS) redirect(`/produktas/${product.slug}?err=price`);
+
   const seller = Array.isArray(product.profiles)
     ? product.profiles[0]
     : product.profiles;
@@ -32,7 +40,12 @@ export async function createCheckout(formData: FormData) {
   }
 
   const site = process.env.NEXT_PUBLIC_SITE_URL;
-  const meta = { product_id: product.id, buyer_id: user.id };
+  const meta = {
+    product_id: product.id,
+    buyer_id: user.id,
+    // Sutikimo įrodymas (Stripe saugo metaduomenis prie mokėjimo)
+    withdrawal_waiver_at: new Date().toISOString(),
+  };
   const session = await getStripe().checkout.sessions.create({
     mode: "payment",
     line_items: [
@@ -52,7 +65,8 @@ export async function createCheckout(formData: FormData) {
     },
     metadata: meta,
     customer_email: user.email ?? undefined,
-    success_url: `${site}/pirkiniai?pirkta=1`,
+    // session_id — jei webhook'as vėluoja, „Mano pirkiniai" patys įvykdys užsakymą
+    success_url: `${site}/pirkiniai?pirkta=1&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${site}/produktas/${product.slug}`,
   });
 

@@ -22,4 +22,4 @@ export const OPERATOR = {
 } as const;
 
 // Paskutinio atnaujinimo data (rodoma dokumentų viršuje).
-export const LEGAL_UPDATED = "2026 m. rugsėjo 16 d.";
+export const LEGAL_UPDATED = "2026 m. rugsėjo 30 d.";

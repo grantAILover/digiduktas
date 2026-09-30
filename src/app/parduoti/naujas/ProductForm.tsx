@@ -8,6 +8,7 @@ import { createProduct } from "../actions";
 import ProductGallery from "@/components/ProductGallery";
 import ProductFilesEditor, { uploadFileItems, type FileItem } from "@/components/ProductFilesEditor";
 import type { NewFileInput } from "@/lib/product-files-server";
+import { MIN_PRICE_LABEL } from "@/lib/pricing";
 
 const MAX_PREVIEWS = 7; // + viršelis = iki 8 galerijoje
 
@@ -164,6 +165,7 @@ export default function ProductForm() {
             placeholder="9.99"
             className="rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none transition-colors focus:border-brand"
           />
+          <span className="text-xs font-normal text-muted">Mažiausia kaina — {MIN_PRICE_LABEL}</span>
         </label>
 
         <label className="flex flex-col gap-1.5 text-sm font-medium">

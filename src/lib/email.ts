@@ -36,8 +36,13 @@ export async function sendOrderConfirmation(opts: {
         </tr>
       </table>
       <a href="${site}/pirkiniai" style="display:inline-block;background:#f97316;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:8px">
-        Peržiūrėti ir atsisiųsti
+        Atidaryti pirkinį
       </a>
+      <p style="color:#a8a29e;font-size:12px;line-height:1.5;margin:20px 0 0">
+        Prieš apmokėdami sutikote, kad skaitmeninis turinys būtų pateiktas iš karto, todėl
+        14 dienų atsisakymo teisė netaikoma. Jei failas sugadintas ar neatitinka aprašymo —
+        <a href="${site}/grazinimai" style="color:#a8a29e">grąžinimų tvarka</a>.
+      </p>
     </div>
     <p style="color:#a8a29e;font-size:12px;margin:16px 0 0">© digiduktas · Sukurta Lietuvoje</p>
   </div>`;

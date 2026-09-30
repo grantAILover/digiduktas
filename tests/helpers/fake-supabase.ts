@@ -1,6 +1,7 @@
 // Netikras Supabase klientas testams: lentelės atmintyje, tik tos užklausos,
-// kurias naudoja mūsų kodas (select/eq/order/maybeSingle/single/upsert + storage).
+// kurias naudoja mūsų kodas (select/eq/in/order/maybeSingle/single/insert/update/upsert + storage).
 type Row = Record<string, unknown>;
+type Filter = (r: Row) => boolean;
 
 export type SignCall = {
   bucket: string;
@@ -9,20 +10,27 @@ export type SignCall = {
   opts?: { download?: string | boolean };
 };
 
+/** Unikalūs stulpeliai (kaip DB indeksai) — pažeidus grąžinama klaida 23505. */
+const UNIQUE: Record<string, string[]> = {
+  orders: ["stripe_session_id"],
+};
+
 export function createFakeSupabase(initial: Record<string, Row[]>) {
   const tables: Record<string, Row[]> = structuredClone(initial);
   const signCalls: SignCall[] = [];
   let userId: string | null = null;
 
   function from(table: string) {
-    const filters: [string, unknown][] = [];
+    const filters: Filter[] = [];
     let selectCols = "*";
     let head = false;
     let order: { col: string; asc: boolean } | null = null;
-    let upsert: { row: Row; keys: string[] } | null = null;
+    let op: "select" | "insert" | "update" | "upsert" = "select";
+    let payload: Row | Row[] | null = null;
+    let conflictKeys: string[] = [];
 
-    const matching = () =>
-      (tables[table] ??= []).filter((r) => filters.every(([c, v]) => r[c] === v));
+    const list = () => (tables[table] ??= []);
+    const matching = () => list().filter((r) => filters.every((f) => f(r)));
 
     // product_files su įdėtu products(...) — kaip PostgREST sąryšis
     const shape = (r: Row): Row =>
@@ -30,26 +38,44 @@ export function createFakeSupabase(initial: Record<string, Row[]>) {
         ? { ...r, products: (tables.products ?? []).find((p) => p.id === r.product_id) ?? null }
         : { ...r };
 
-    function run() {
-      if (upsert) {
-        const list = (tables[table] ??= []);
-        const { row, keys } = upsert;
-        const i = list.findIndex((r) => keys.every((k) => r[k] === row[k]));
-        if (i >= 0) list[i] = { ...list[i], ...row };
-        else list.push({ ...row });
+    function run(): { data: Row[] | null; error: { code: string; message: string } | null; count: number | null } {
+      if (op === "insert") {
+        const rows = (Array.isArray(payload) ? payload : [payload!]).map(
+          (r): Row => ({ id: crypto.randomUUID(), ...r }),
+        );
+        for (const r of rows) {
+          for (const col of UNIQUE[table] ?? []) {
+            if (r[col] != null && list().some((x) => x[col] === r[col])) {
+              return { data: null, error: { code: "23505", message: `duplicate ${col}` }, count: null };
+            }
+          }
+        }
+        list().push(...rows);
+        return { data: rows.map(shape), error: null, count: rows.length };
+      }
+      if (op === "update") {
+        const rows = matching();
+        rows.forEach((r) => Object.assign(r, payload));
+        return { data: rows.map(shape), error: null, count: rows.length };
+      }
+      if (op === "upsert") {
+        const row = payload as Row;
+        const i = list().findIndex((r) => conflictKeys.every((k) => r[k] === row[k]));
+        if (i >= 0) list()[i] = { ...list()[i], ...row };
+        else list().push({ ...row });
         return { data: null, error: null, count: null };
       }
-      let list = matching();
+      let rows = matching();
       if (order) {
         const { col, asc } = order;
-        list = [...list].sort((a, b) => {
+        rows = [...rows].sort((a, b) => {
           const x = a[col] as string | number;
           const y = b[col] as string | number;
           return (x < y ? -1 : x > y ? 1 : 0) * (asc ? 1 : -1);
         });
       }
-      if (head) return { data: null, error: null, count: list.length };
-      return { data: list.map(shape), error: null, count: list.length };
+      if (head) return { data: null, error: null, count: rows.length };
+      return { data: rows.map(shape), error: null, count: rows.length };
     }
 
     const builder = {
@@ -59,26 +85,43 @@ export function createFakeSupabase(initial: Record<string, Row[]>) {
         return builder;
       },
       eq(col: string, val: unknown) {
-        filters.push([col, val]);
+        filters.push((r) => r[col] === val);
+        return builder;
+      },
+      in(col: string, vals: unknown[]) {
+        filters.push((r) => vals.includes(r[col]));
         return builder;
       },
       order(col: string, o?: { ascending?: boolean }) {
         order = { col, asc: o?.ascending !== false };
         return builder;
       },
+      insert(rows: Row | Row[]) {
+        op = "insert";
+        payload = rows;
+        return builder;
+      },
+      update(patch: Row) {
+        op = "update";
+        payload = patch;
+        return builder;
+      },
       upsert(row: Row, o?: { onConflict?: string }) {
-        upsert = { row, keys: (o?.onConflict ?? "id").split(",").map((k) => k.trim()) };
+        op = "upsert";
+        payload = row;
+        conflictKeys = (o?.onConflict ?? "id").split(",").map((k) => k.trim());
         return builder;
       },
       async maybeSingle() {
         const r = run();
-        return { data: r.data?.[0] ?? null, error: null };
+        return { data: r.data?.[0] ?? null, error: r.error };
       },
       async single() {
         const r = run();
+        if (r.error) return { data: null, error: r.error };
         return r.data?.length
           ? { data: r.data[0], error: null }
-          : { data: null, error: { message: "not found" } };
+          : { data: null, error: { code: "PGRST116", message: "not found" } };
       },
       then<T>(resolve: (v: ReturnType<typeof run>) => T, reject?: (e: unknown) => T) {
         return Promise.resolve(run()).then(resolve, reject);
@@ -101,7 +144,10 @@ export function createFakeSupabase(initial: Record<string, Row[]>) {
 
   const auth = {
     async getUser() {
-      return { data: { user: userId ? { id: userId } : null }, error: null };
+      return {
+        data: { user: userId ? { id: userId, email: `${userId.slice(0, 4)}@test.lt` } : null },
+        error: null,
+      };
     },
   };
 

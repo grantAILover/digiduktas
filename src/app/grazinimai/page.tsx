@@ -27,7 +27,8 @@ export default function GrazinimaiPage() {
             pradėtas teikti (atsisiųstas) gavus išankstinį jūsų sutikimą ir
             patvirtinimą, kad taip prarandate atsisakymo teisę
           </strong>
-          . Pirkdami produktą ir jį atsisiųsdami, tokį sutikimą duodate.
+          . Tokį sutikimą aiškiai patvirtinate prieš apmokėdami, pažymėdami atitinkamą
+          laukelį, o patvirtinimą gaunate el. paštu kartu su pirkimo informacija.
         </p>
       </Section>
 

@@ -38,18 +38,35 @@ export function seed() {
       { id: IDS.admin, is_admin: true },
     ],
     products: [
-      { id: IDS.productOpen, title: "E-knyga", seller_id: IDS.seller, allow_download: true },
-      { id: IDS.productLocked, title: "Audio knyga", seller_id: IDS.seller, allow_download: false },
+      {
+        id: IDS.productOpen,
+        title: "E-knyga",
+        slug: "e-knyga",
+        status: "live",
+        price_cents: 999,
+        seller_id: IDS.seller,
+        allow_download: true,
+      },
+      {
+        id: IDS.productLocked,
+        title: "Audio knyga",
+        slug: "audio-knyga",
+        status: "live",
+        price_cents: 1499,
+        seller_id: IDS.seller,
+        allow_download: false,
+      },
     ],
     product_files: [
       file(IDS.fileOpen, IDS.productOpen, "knyga.pdf", "pdf"),
       file(IDS.fileLocked, IDS.productLocked, "skyrius-1.mp3", "audio"),
     ],
     orders: [
-      { id: "o1", buyer_id: IDS.buyer, product_id: IDS.productOpen, status: "paid" },
-      { id: "o2", buyer_id: IDS.buyer, product_id: IDS.productLocked, status: "paid" },
-      { id: "o3", buyer_id: IDS.refunded, product_id: IDS.productOpen, status: "refunded" },
+      { id: "o1", buyer_id: IDS.buyer, product_id: IDS.productOpen, status: "paid", stripe_session_id: "cs_test_o1", stripe_payment_intent: "pi_o1" },
+      { id: "o2", buyer_id: IDS.buyer, product_id: IDS.productLocked, status: "paid", stripe_session_id: "cs_test_o2", stripe_payment_intent: "pi_o2" },
+      { id: "o3", buyer_id: IDS.refunded, product_id: IDS.productOpen, status: "refunded", stripe_session_id: "cs_test_o3", stripe_payment_intent: "pi_o3" },
     ],
+    downloads: [],
     playback_progress: [],
   };
 }

@@ -7,6 +7,7 @@ import { updateProduct } from "../../product-actions";
 import ProductGallery from "@/components/ProductGallery";
 import ProductFilesEditor, { uploadFileItems, type FileItem } from "@/components/ProductFilesEditor";
 import type { FileKind } from "@/lib/files";
+import { MIN_PRICE_LABEL } from "@/lib/pricing";
 
 const MAX_PREVIEWS = 7;
 
@@ -169,6 +170,7 @@ export default function EditProductForm({
             defaultValue={(product.price_cents / 100).toFixed(2)}
             className={inputCls}
           />
+          <span className="text-xs font-normal text-muted">Mažiausia kaina — {MIN_PRICE_LABEL}</span>
         </label>
 
         <label className="flex flex-col gap-1.5 text-sm font-medium">

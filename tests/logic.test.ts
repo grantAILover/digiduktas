@@ -3,6 +3,27 @@ import { decideRole, mayDownload } from "@/lib/access";
 import { canDisableDownload, detectKind } from "@/lib/files";
 import { parseProgressBody } from "@/lib/progress";
 import { effectiveAllowDownload, toNewFileRow } from "@/lib/product-files-server";
+import { MIN_PRICE_CENTS, parsePriceEur, priceError } from "@/lib/pricing";
+
+describe("Kainos", () => {
+  it("supranta lietuvišką ir angliško formato kainą", () => {
+    expect(parsePriceEur("9,99")).toBe(999);
+    expect(parsePriceEur("9.99")).toBe(999);
+    expect(parsePriceEur(" 3 ")).toBe(300);
+    expect(parsePriceEur("abc")).toBeNull();
+    expect(parsePriceEur("-5")).toBeNull();
+    expect(parsePriceEur("1.999")).toBeNull();
+  });
+
+  it("minimali kaina 3 € — pigesni produktai būtų nuostolingi", () => {
+    expect(MIN_PRICE_CENTS).toBe(300);
+    expect(priceError(299)).toContain("3,00 €");
+    expect(priceError(300)).toBeNull();
+    expect(priceError(null)).not.toBeNull();
+    // Lūžio taškas: 10 % komisija turi padengti Stripe ~1,5 % + 0,25 €
+    expect(MIN_PRICE_CENTS * 0.1).toBeGreaterThanOrEqual(MIN_PRICE_CENTS * 0.015 + 25);
+  });
+});
 
 describe("Prieigos taisyklės", () => {
   const base = { userId: "u", sellerId: "s", isAdmin: false, hasPaidOrder: false };

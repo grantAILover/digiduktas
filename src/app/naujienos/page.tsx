@@ -23,6 +23,18 @@ type Entry = {
 const entries: Entry[] = [
   {
     status: "done",
+    date: "2026-09-30",
+    title: "Patikimesni pirkimai",
+    desc: "Pirkinys pasiekia jus net jei mokėjimo patvirtinimas vėluoja, o grąžinus pinigus užsakymas sutvarkomas automatiškai. Prieš apmokėdami aiškiai matote, kad skaitmeniniam turiniui 14 dienų atsisakymo teisė netaikoma.",
+  },
+  {
+    status: "done",
+    date: "2026-09-30",
+    title: "Minimali produkto kaina — 3 €",
+    desc: "Kad kiekvienas pardavimas padengtų mokėjimo mokesčius ir turgus išliktų tvarus ilgam.",
+  },
+  {
+    status: "done",
     date: "2026-09-28",
     title: "Peržiūra naršyklėje",
     desc: "Nupirktus PDF galima skaityti, o garso ir vaizdo įrašus klausyti ar žiūrėti tiesiai naršyklėje. Pardavėjas pats pasirenka, ar leisti failą atsisiųsti.",

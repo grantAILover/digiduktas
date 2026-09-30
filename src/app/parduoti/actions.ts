@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { parsePriceEur, priceError } from "@/lib/pricing";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -104,11 +105,9 @@ export async function createProduct(
     fileRows.push(row);
   }
 
-  const normalized = input.priceEur.replace(",", ".");
-  const priceCents = Math.round(parseFloat(normalized) * 100);
-  if (!Number.isFinite(priceCents) || priceCents < 0) {
-    return { error: "Neteisinga kaina." };
-  }
+  const priceCents = parsePriceEur(input.priceEur);
+  const priceProblem = priceError(priceCents);
+  if (priceProblem || priceCents === null) return { error: priceProblem ?? "Neteisinga kaina." };
 
   const slug = `${slugify(title)}-${Math.random().toString(36).slice(2, 7)}`;
 

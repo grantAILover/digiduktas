@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { eur } from "@/components/ProductCard";
 import { KIND_LABEL, isViewable, type FileKind } from "@/lib/files";
+import { fulfillFromReturn } from "@/lib/fulfillment";
 
 export const metadata = { title: "Mano pirkiniai" };
 
@@ -25,6 +26,12 @@ export default async function PirkiniaiPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/auth");
   const sp = await searchParams;
+
+  // Grįžus iš Stripe: jei webhook'as vėluoja ar nesuveikė — įvykdom užsakymą patys
+  // (idempotentiška, dvigubo užsakymo nebus)
+  if (typeof sp?.session_id === "string") {
+    await fulfillFromReturn(sp.session_id, user.id);
+  }
 
   const admin = createAdminClient();
   const { data: orders } = await admin

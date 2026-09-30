@@ -177,6 +177,16 @@ export default async function ProduktasPage({
               Šis pardavėjas dar nepriima mokėjimų. Pabandykite vėliau.
             </p>
           )}
+          {sp?.err === "consent" && (
+            <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+              Norėdami pirkti, pažymėkite sutikimą žemiau.
+            </p>
+          )}
+          {sp?.err === "price" && (
+            <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+              Šio produkto šiuo metu nusipirkti negalima. Pabandykite vėliau.
+            </p>
+          )}
 
           {isOwner ? (
             <p className="mt-4 rounded-lg border border-line bg-canvas px-4 py-3 text-sm text-muted">
@@ -185,6 +195,21 @@ export default async function ProduktasPage({
           ) : (
             <form action={createCheckout}>
               <input type="hidden" name="productId" value={p.id} />
+              <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-muted">
+                <input
+                  type="checkbox"
+                  name="consent"
+                  required
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
+                />
+                <span>
+                  Sutinku, kad skaitmeninis turinys būtų pateiktas iš karto po apmokėjimo, ir
+                  suprantu, kad tuomet prarandu teisę atsisakyti sutarties per 14 dienų.{" "}
+                  <Link href="/grazinimai" className="text-brand hover:underline">
+                    Grąžinimų tvarka
+                  </Link>
+                </span>
+              </label>
               <button
                 type="submit"
                 className="mt-4 w-full rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark sm:w-auto"
