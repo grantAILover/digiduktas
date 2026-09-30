@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { CATEGORIES } from "@/lib/categories";
+import { ACTIVE_CATEGORIES, SOON_CATEGORIES } from "@/lib/categories";
 import ProductCard, { type ProductCardData } from "@/components/ProductCard";
 import SearchSort from "./SearchSort";
 
 export const metadata = {
   title: "Produktai",
   description:
-    "Naršykite lietuviškus skaitmeninius produktus: šablonus, presetus, e-knygas, kursus ir daugiau.",
+    "VBE konspektai, užduočių sprendimai ir mokymosi medžiaga nuo mokytojų, korepetitorių ir abiturientų.",
 };
 
 type RawRow = Omit<ProductCardData, "seller"> & {
@@ -67,7 +67,7 @@ export default async function ProduktaiPage({
         >
           Visos
         </Link>
-        {CATEGORIES.map((c) => (
+        {ACTIVE_CATEGORIES.map((c) => (
           <Link
             key={c.slug}
             href={`/produktai?kategorija=${c.slug}`}
@@ -80,6 +80,15 @@ export default async function ProduktaiPage({
             {c.name}
           </Link>
         ))}
+        {SOON_CATEGORIES.map((c) => (
+          <span
+            key={c.slug}
+            title="Netrukus"
+            className="cursor-default rounded-lg border border-dashed border-line px-3 py-1.5 text-sm text-muted"
+          >
+            {c.name} · netrukus
+          </span>
+        ))}
       </div>
 
       {/* Sąrašas */}
@@ -91,7 +100,7 @@ export default async function ProduktaiPage({
           <p className="mt-1 text-sm text-muted">
             {q
               ? "Pabandykite kitą paiešką arba kategoriją."
-              : "Pirmieji kūrėjai jau ruošiami — netrukus čia bus ką atrasti."}
+              : "Pirmieji konspektai jau ruošiami — netrukus čia bus ką atrasti."}
           </p>
         </div>
       ) : (

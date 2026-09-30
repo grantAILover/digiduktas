@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parsePriceEur, priceError } from "@/lib/pricing";
+import { isActiveCategory } from "@/lib/categories";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -55,6 +56,7 @@ export type CreateProductInput = {
   previewImages?: string[];
   files: NewFileInput[]; // tvarka = skyrių tvarka
   allowDownload: boolean;
+  rightsConfirmed: boolean; // „turinys mano sukurtas arba turiu teisę jį parduoti"
 };
 
 export type CreateProductResult = { ok?: boolean; slug?: string; error?: string };
@@ -95,6 +97,10 @@ export async function createProduct(
 
   const title = input.title.trim();
   if (!title) return { error: "Įrašykite pavadinimą." };
+  if (!isActiveCategory(input.category)) return { error: "Pasirinkite kategoriją." };
+  if (input.rightsConfirmed !== true) {
+    return { error: "Patvirtinkite, kad turinys yra jūsų sukurtas arba turite teisę jį parduoti." };
+  }
 
   const countError = checkFileCount(input.files?.length ?? 0);
   if (countError) return { error: countError };
@@ -123,6 +129,7 @@ export async function createProduct(
       cover_image_url: input.coverImageUrl,
       preview_images: (input.previewImages ?? []).slice(0, 7),
       file_path: fileRows[0].storage_path, // atgaliniam suderinamumui
+      rights_confirmed_at: new Date().toISOString(),
       allow_download: effectiveAllowDownload(
         !!input.allowDownload,
         fileRows.map((r) => r.kind),

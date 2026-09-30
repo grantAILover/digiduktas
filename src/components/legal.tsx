@@ -27,9 +27,19 @@ export function LegalPage({
   );
 }
 
-export function Section({ n, title, children }: { n: number; title: string; children: ReactNode }) {
+export function Section({
+  n,
+  title,
+  id,
+  children,
+}: {
+  n: number;
+  title: string;
+  id?: string;
+  children: ReactNode;
+}) {
   return (
-    <section>
+    <section id={id} className="scroll-mt-24">
       <h2 className="text-lg font-bold tracking-tight">
         {n}. {title}
       </h2>

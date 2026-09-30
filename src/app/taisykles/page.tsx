@@ -55,6 +55,7 @@ export default function TaisyklesPage() {
         <Bullets
           items={[
             "Parduoti tik savo sukurtus arba turimas teises parduoti produktus.",
+            "Prieš įkeliant produktą patvirtinti, kad turinys yra savo sukurtas arba turima teisė jį parduoti (patvirtinimo laikas išsaugomas).",
             "Nekelti turinio, pažeidžiančio autorių teises, prekių ženklus ar įstatymus.",
             "Pateikti teisingą produkto aprašymą; produktas turi atitikti aprašymą.",
             "Įkelti veikiantį failą ir užtikrinti jo prieinamumą pirkėjui.",
@@ -74,6 +75,8 @@ export default function TaisyklesPage() {
         <Bullets
           items={[
             "svetimą ar be leidimo platinamą turinį (autorių teisių pažeidimai);",
+            "vadovėlių, pratybų ar kitų leidinių kopijas (pvz. nuskenuotus puslapius);",
+            "oficialiai skelbiamų egzaminų užduočių kopijas, pateikiamas kaip savo kūrinys (savi sprendimai ir paaiškinimai — leidžiami);",
             "kenkėjišką programinę įrangą ar apgaulingą turinį;",
             "neteisėtą, įžeidžiantį, smurtinį ar pornografinį turinį;",
             "asmens duomenis be teisėto pagrindo;",
@@ -91,7 +94,45 @@ export default function TaisyklesPage() {
         </p>
       </Section>
 
-      <Section n={7} title="Kainos, apmokėjimai ir komisija">
+      <Section n={7} id="pazeidimai" title="Pranešimai apie pažeidimus ir turinio pašalinimas">
+        <p>
+          Jei manote, kad produktas pažeidžia jūsų autorių teises ar kitaip pažeidžia šias
+          taisykles, praneškite mums. Pranešti gali bet kas — ir paskyros neturintys asmenys.
+        </p>
+        <p className="font-medium text-ink">Kaip pranešti</p>
+        <Bullets
+          items={[
+            <>produkto puslapyje paspauskite <strong>„Pranešti apie produktą“</strong> (reikia prisijungti), arba</>,
+            <>
+              rašykite{" "}
+              <a className="text-brand hover:underline" href={`mailto:${OPERATOR.email}`}>{OPERATOR.email}</a>.
+            </>,
+          ]}
+        />
+        <p>Pranešime nurodykite:</p>
+        <Bullets
+          items={[
+            "nuorodą į produktą;",
+            "kas pažeidžiama (pvz. jūsų kūrinys ir kur jis paskelbtas);",
+            "įrodymą, kad teisės priklauso jums (jei taikoma);",
+            "savo vardą ir kontaktus;",
+            "patvirtinimą, kad pateikta informacija teisinga.",
+          ]}
+        />
+        <p className="font-medium text-ink">Kas vyksta toliau</p>
+        <Bullets
+          items={[
+            "Pranešimą peržiūrime per 3 darbo dienas.",
+            "Jei pažeidimas akivaizdus, produktas iš karto sustabdomas (nebematomas turguje), kol pranešimas nagrinėjamas.",
+            "Pardavėjas informuojamas apie pranešimą ir sprendimo priežastis; jis gali pateikti paaiškinimą ar prieštaravimą.",
+            "Patvirtinus pažeidimą produktas pašalinamas, o pirkėjams pinigai grąžinami pagal Grąžinimų tvarką.",
+            "Pakartotinai taisykles pažeidžiančių pardavėjų paskyros sustabdomos arba panaikinamos.",
+          ]}
+        />
+        <p>Apie priimtą sprendimą informuojame ir pranešusį asmenį, ir pardavėją.</p>
+      </Section>
+
+      <Section n={8} title="Kainos, apmokėjimai ir komisija">
         <Bullets
           items={[
             "Kainas nustato pardavėjas; jos nurodomos eurais.",
@@ -102,7 +143,7 @@ export default function TaisyklesPage() {
         />
       </Section>
 
-      <Section n={8} title="Produktų pristatymas">
+      <Section n={9} title="Produktų pristatymas">
         <p>
           Po sėkmingo apmokėjimo pirkėjas įgyja teisę atsisiųsti produktą per
           savo paskyrą (skiltis „Mano pirkiniai“) apsaugota nuoroda. Atsisiuntimo
@@ -110,14 +151,14 @@ export default function TaisyklesPage() {
         </p>
       </Section>
 
-      <Section n={9} title="Grąžinimai">
+      <Section n={10} title="Grąžinimai">
         <p>
           Kadangi parduodamas skaitmeninis turinys, grąžinimams taikoma atskira{" "}
           <a className="text-brand hover:underline" href="/grazinimai">Grąžinimų tvarka</a>.
         </p>
       </Section>
 
-      <Section n={10} title="Atsakomybės ribojimas">
+      <Section n={11} title="Atsakomybės ribojimas">
         <p>
           Svetainė teikiama „tokia, kokia yra“. Operatorius neatsako už pardavėjų
           įkeltų produktų kokybę, teisėtumą ar tinkamumą konkrečiam tikslui, taip
@@ -128,7 +169,7 @@ export default function TaisyklesPage() {
         </p>
       </Section>
 
-      <Section n={11} title="Taikoma teisė">
+      <Section n={12} title="Taikoma teisė">
         <p>
           Taisyklėms taikoma Lietuvos Respublikos teisė. Ginčai sprendžiami
           derybomis, o nepavykus — Lietuvos Respublikos teismuose. Vartotojai taip
@@ -137,7 +178,7 @@ export default function TaisyklesPage() {
         </p>
       </Section>
 
-      <Section n={12} title="Pakeitimai">
+      <Section n={13} title="Pakeitimai">
         <p>
           Operatorius gali keisti šias taisykles. Apie pakeitimus pranešama
           svetainėje. Toliau naudodamiesi svetaine, sutinkate su atnaujinta

@@ -62,7 +62,7 @@ export default async function AdminPage() {
         .order("display_name", { ascending: true }),
       supabase
         .from("reports")
-        .select("id, reason, created_at, products:product_id(title, slug)")
+        .select("id, reason, created_at, products:product_id(id, title, slug, status)")
         .eq("status", "open")
         .order("created_at", { ascending: true }),
     ]);
@@ -282,13 +282,27 @@ export default async function AdminPage() {
                       <span className="text-sm font-medium">Produktas pašalintas</span>
                     )}
                     <p className="text-xs text-muted">{r.reason}</p>
+                    {prod?.status === "suspended" && (
+                      <p className="text-xs font-medium text-red-700">Produktas sustabdytas</p>
+                    )}
                   </div>
-                  <form action={resolveReport}>
-                    <input type="hidden" name="reportId" value={r.id} />
-                    <button className={`${btn} border border-line hover:bg-brand-soft`}>
-                      Pažymėti išspręsta
-                    </button>
-                  </form>
+                  <div className="flex shrink-0 gap-2">
+                    {prod?.id && prod.status === "live" && (
+                      <form action={setProductStatus}>
+                        <input type="hidden" name="productId" value={prod.id} />
+                        <input type="hidden" name="status" value="suspended" />
+                        <button className={`${btn} border border-line text-red-700 hover:bg-red-50`}>
+                          Sustabdyti produktą
+                        </button>
+                      </form>
+                    )}
+                    <form action={resolveReport}>
+                      <input type="hidden" name="reportId" value={r.id} />
+                      <button className={`${btn} border border-line hover:bg-brand-soft`}>
+                        Pažymėti išspręsta
+                      </button>
+                    </form>
+                  </div>
                 </div>
               );
             })}

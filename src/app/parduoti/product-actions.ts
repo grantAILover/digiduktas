@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { FileKind } from "@/lib/files";
 import { parsePriceEur, priceError } from "@/lib/pricing";
+import { isActiveCategory } from "@/lib/categories";
 import {
   checkFileCount,
   effectiveAllowDownload,
@@ -26,6 +27,7 @@ export type UpdateProductInput = {
   previewImages?: string[]; // jei nurodyta — pakeičia visą peržiūrų sąrašą
   files?: FileInput[]; // jei nurodyta — galutinis failų sąrašas (tvarka = skyrių tvarka)
   allowDownload: boolean;
+  rightsConfirmed?: boolean; // privaloma, kai pridedami nauji failai
 };
 
 type Planned = { existingId: string } | { row: NewFileRow };
@@ -59,11 +61,16 @@ export async function updateProduct(
   // Savininko patikra (toliau failus keičiam vartotojo klientu — RLS irgi saugo)
   const { data: owned } = await supabase
     .from("products")
-    .select("id")
+    .select("id, category")
     .eq("id", input.id)
     .eq("seller_id", user.id)
     .maybeSingle();
   if (!owned) return { error: "Produktas nerastas." };
+
+  // Galima pasirinkti aktyvią kategoriją arba palikti esamą (net jei ji nebeaktyvi)
+  if (!isActiveCategory(input.category) && input.category !== owned.category) {
+    return { error: "Pasirinkite kategoriją." };
+  }
 
   const { data: currentRows } = await supabase
     .from("product_files")
@@ -77,6 +84,14 @@ export async function updateProduct(
   if (input.files) {
     const countError = checkFileCount(input.files.length);
     if (countError) return { error: countError };
+
+    // Nauji failai → naujas patvirtinimas dėl teisių
+    if (input.files.some((f) => !isExisting(f))) {
+      if (input.rightsConfirmed !== true) {
+        return { error: "Patvirtinkite, kad naujų failų turinys yra jūsų sukurtas arba turite teisę jį parduoti." };
+      }
+      patch.rights_confirmed_at = new Date().toISOString();
+    }
 
     const plan: Planned[] = [];
     const seen = new Set<string>();

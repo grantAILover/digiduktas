@@ -2,10 +2,14 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { CATEGORIES } from "@/lib/categories";
+import { ACTIVE_CATEGORIES, SOON_CATEGORIES, categoryName, isActiveCategory } from "@/lib/categories";
 import { updateProduct } from "../../product-actions";
 import ProductGallery from "@/components/ProductGallery";
-import ProductFilesEditor, { uploadFileItems, type FileItem } from "@/components/ProductFilesEditor";
+import ProductFilesEditor, {
+  RightsCheckbox,
+  uploadFileItems,
+  type FileItem,
+} from "@/components/ProductFilesEditor";
 import type { FileKind } from "@/lib/files";
 import { MIN_PRICE_LABEL } from "@/lib/pricing";
 
@@ -38,6 +42,8 @@ export default function EditProductForm({
     files.map((f) => ({ key: f.id, existingId: f.id, file_name: f.file_name, kind: f.kind, size_bytes: f.size_bytes })),
   );
   const [allowDownload, setAllowDownload] = useState(product.allow_download);
+  const [rightsConfirmed, setRightsConfirmed] = useState(false);
+  const hasNewFiles = fileItems.some((i) => i.file);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(product.cover_image_url);
@@ -121,6 +127,9 @@ export default function EditProductForm({
       }
 
       if (fileItems.length === 0) throw new Error("Palikite bent vieną parduodamą failą.");
+      if (hasNewFiles && !rightsConfirmed) {
+        throw new Error("Patvirtinkite, kad naujų failų turinys yra jūsų sukurtas arba turite teisę jį parduoti.");
+      }
       const uploadedFiles = await uploadFileItems(supabase, user.id, fileItems);
 
       const res = await updateProduct({
@@ -133,6 +142,7 @@ export default function EditProductForm({
         previewImages,
         files: uploadedFiles,
         allowDownload,
+        rightsConfirmed,
       });
       if (res?.error) throw new Error(res.error);
       // sėkmės atveju updateProduct redirect'ina į /parduoti
@@ -179,11 +189,22 @@ export default function EditProductForm({
             <option value="" disabled>
               Pasirink…
             </option>
-            {CATEGORIES.map((c) => (
+            {ACTIVE_CATEGORIES.map((c) => (
               <option key={c.slug} value={c.slug}>
                 {c.name}
               </option>
             ))}
+            {/* Sena (nebeaktyvi) kategorija — galima palikti, bet ne pasirinkti iš naujo */}
+            {product.category && !isActiveCategory(product.category) && (
+              <option value={product.category}>{categoryName(product.category)} (senoji)</option>
+            )}
+            <optgroup label="Netrukus">
+              {SOON_CATEGORIES.filter((c) => c.slug !== product.category).map((c) => (
+                <option key={c.slug} value={c.slug} disabled>
+                  {c.name}
+                </option>
+              ))}
+            </optgroup>
           </select>
         </label>
       </div>
@@ -271,6 +292,8 @@ export default function EditProductForm({
         onAllowDownloadChange={setAllowDownload}
         onError={setError}
       />
+
+      {hasNewFiles && <RightsCheckbox checked={rightsConfirmed} onChange={setRightsConfirmed} />}
 
       {error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>

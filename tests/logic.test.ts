@@ -4,6 +4,25 @@ import { canDisableDownload, detectKind } from "@/lib/files";
 import { parseProgressBody } from "@/lib/progress";
 import { effectiveAllowDownload, toNewFileRow } from "@/lib/product-files-server";
 import { MIN_PRICE_CENTS, parsePriceEur, priceError } from "@/lib/pricing";
+import { ACTIVE_CATEGORIES, categoryName, isActiveCategory } from "@/lib/categories";
+
+describe("Kategorijos", () => {
+  it("pasirenkamos tik VBE ir mokyklinė medžiaga", () => {
+    expect(ACTIVE_CATEGORIES.map((c) => c.slug)).toEqual(["vbe", "mokykline"]);
+    expect(isActiveCategory("vbe")).toBe(true);
+    expect(isActiveCategory("mokykline")).toBe(true);
+    expect(isActiveCategory("sablonai")).toBe(false); // netrukus
+    expect(isActiveCategory("e-knygos")).toBe(false); // išjungta (autorių teisės)
+    expect(isActiveCategory("muzika")).toBe(false);
+    expect(isActiveCategory("")).toBe(false);
+  });
+
+  it("senų produktų kategorijų pavadinimai nesulūžta", () => {
+    expect(categoryName("e-knygos")).toBe("E-knygos ir gidai");
+    expect(categoryName("grafika")).toBe("Grafika ir dizainas");
+    expect(categoryName("nezinoma")).toBe("Kita");
+  });
+});
 
 describe("Kainos", () => {
   it("supranta lietuvišką ir angliško formato kainą", () => {

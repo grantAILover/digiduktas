@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { reportProduct, type ReportState } from "./actions";
+import { OPERATOR } from "@/lib/legal";
 
 const reasons = [
   "Netinkamas turinys",
@@ -55,12 +56,25 @@ export default function ReportButton({
     >
       <input type="hidden" name="productId" value={productId} />
       {!isLoggedIn ? (
-        <p className="text-sm text-muted">
-          Prisijunkite, kad galėtumėte pranešti.{" "}
-          <Link href="/auth" className="font-medium text-brand hover:text-brand-dark">
-            Prisijungti
-          </Link>
-        </p>
+        <div className="flex flex-col gap-1.5 text-sm text-muted">
+          <p>
+            Prisijunkite, kad galėtumėte pranešti.{" "}
+            <Link href="/auth" className="font-medium text-brand hover:text-brand-dark">
+              Prisijungti
+            </Link>
+          </p>
+          <p className="text-xs">
+            Esate autorius ir neturite paskyros? Rašykite{" "}
+            <a href={`mailto:${OPERATOR.email}`} className="text-brand hover:underline">
+              {OPERATOR.email}
+            </a>{" "}
+            —{" "}
+            <Link href="/taisykles#pazeidimai" className="text-brand hover:underline">
+              pranešimų tvarka
+            </Link>
+            .
+          </p>
+        </div>
       ) : (
         <>
           <span className="text-sm font-medium">Kodėl pranešate?</span>

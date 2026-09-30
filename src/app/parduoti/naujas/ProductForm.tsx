@@ -3,10 +3,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { CATEGORIES } from "@/lib/categories";
+import { ACTIVE_CATEGORIES, SOON_CATEGORIES } from "@/lib/categories";
 import { createProduct } from "../actions";
 import ProductGallery from "@/components/ProductGallery";
-import ProductFilesEditor, { uploadFileItems, type FileItem } from "@/components/ProductFilesEditor";
+import ProductFilesEditor, {
+  RightsCheckbox,
+  uploadFileItems,
+  type FileItem,
+} from "@/components/ProductFilesEditor";
 import type { NewFileInput } from "@/lib/product-files-server";
 import { MIN_PRICE_LABEL } from "@/lib/pricing";
 
@@ -28,6 +32,7 @@ export default function ProductForm() {
   const [showPreview, setShowPreview] = useState(false);
   const [fileItems, setFileItems] = useState<FileItem[]>([]);
   const [allowDownload, setAllowDownload] = useState(true);
+  const [rightsConfirmed, setRightsConfirmed] = useState(false);
 
   // Animuoti taškai, kad nesijaustų užstrigę
   useEffect(() => {
@@ -75,6 +80,9 @@ export default function ProductForm() {
 
       if (!title) throw new Error("Įrašykite pavadinimą.");
       if (fileItems.length === 0) throw new Error("Pasirinkite bent vieną parduodamą failą.");
+      if (!rightsConfirmed) {
+        throw new Error("Patvirtinkite, kad turinys yra jūsų sukurtas arba turite teisę jį parduoti.");
+      }
 
       const supabase = createClient();
       const {
@@ -119,6 +127,7 @@ export default function ProductForm() {
         previewImages,
         files: uploaded.filter((f): f is NewFileInput => !("id" in f)),
         allowDownload,
+        rightsConfirmed,
       });
       if (res.error) throw new Error(res.error);
 
@@ -179,11 +188,18 @@ export default function ProductForm() {
             <option value="" disabled>
               Pasirink…
             </option>
-            {CATEGORIES.map((c) => (
+            {ACTIVE_CATEGORIES.map((c) => (
               <option key={c.slug} value={c.slug}>
                 {c.name}
               </option>
             ))}
+            <optgroup label="Netrukus">
+              {SOON_CATEGORIES.map((c) => (
+                <option key={c.slug} value={c.slug} disabled>
+                  {c.name}
+                </option>
+              ))}
+            </optgroup>
           </select>
         </label>
       </div>
@@ -230,6 +246,8 @@ export default function ProductForm() {
         onAllowDownloadChange={setAllowDownload}
         onError={setError}
       />
+
+      <RightsCheckbox checked={rightsConfirmed} onChange={setRightsConfirmed} />
 
       {error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
