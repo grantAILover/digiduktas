@@ -80,7 +80,7 @@ export default function WaitlistForm() {
               name="wants_to_sell"
               rows={2}
               maxLength={500}
-              placeholder="Pvz.: matematikos VBE sprendimai, biologijos konspektai"
+              placeholder="Pvz.: matematikos egzamino sprendimai, eilėraščių analizės"
               className="rounded-lg border border-line bg-canvas px-3 py-2.5 text-sm font-normal outline-none transition-colors focus:border-brand"
             />
           </label>

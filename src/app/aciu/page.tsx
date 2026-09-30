@@ -25,8 +25,8 @@ export default async function AciuPage({ searchParams }: PageProps<"/aciu">) {
   const site = process.env.NEXT_PUBLIC_SITE_URL || "https://digiduktas.lt";
   const shareUrl = code ? `${site}/?ref=${code}` : site;
   const shareText = isSeller
-    ? "Radau vietą, kur mokytojai, korepetitoriai ir abiturientai gali parduoti savo VBE konspektus. Pirmą savaitę — be komisijos:"
-    : "Netrukus atsidaro vieta, kur rasi VBE konspektų ir sprendimų nuo tų, kurie jau išlaikė:";
+    ? "Radau vietą, kur mokytojai, korepetitoriai ir abiturientai gali parduoti savo konspektus ir mokymosi medžiagą. Pirmą savaitę — be komisijos:"
+    : "Netrukus atsidaro vieta, kur rasi konspektų ir medžiagos egzaminams nuo tų, kurie jau išlaikė:";
 
   return (
     <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">

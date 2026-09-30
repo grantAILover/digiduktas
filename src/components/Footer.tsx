@@ -9,7 +9,7 @@ export default function Footer() {
           </span>
         </div>
         <p className="mx-auto max-w-md text-sm text-muted">
-          Lietuviška VBE ir mokymosi medžiaga nuo mokytojų, korepetitorių ir
+          Lietuviška mokymosi medžiaga nuo mokytojų, korepetitorių ir
           abiturientų.
         </p>
         <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted">

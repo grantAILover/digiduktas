@@ -1,7 +1,7 @@
 import WaitlistForm from "@/components/WaitlistForm";
 import { CoverPlaceholder } from "@/components/ProductCard";
 
-// Pagrindinė žinutė — VBE ir mokymosi medžiaga. Kitos kategorijos — „netrukus".
+// Pagrindinė žinutė — mokymosi medžiaga egzaminams ir pamokoms. Kitos kategorijos — „netrukus".
 const comingSoon = ["Šablonai", "Grafika ir dizainas", "Presetai ir filtrai", "Vaizdo kursai"];
 
 const benefits = [
@@ -30,17 +30,17 @@ const audiences = [
   },
   {
     title: "Abiturientams",
-    text: "Išlaikei VBE? Tavo konspektai gali padėti kitiems — ir tau uždirbti.",
+    text: "Išlaikei egzaminus? Tavo konspektai gali padėti kitiems — ir tau uždirbti.",
   },
 ];
 
 const examples = [
-  { title: "Matematikos VBE uždavinių sprendimai", tag: "VBE" },
-  { title: "Lietuvių kalbos rašinio planai ir argumentai", tag: "VBE" },
+  { title: "Matematikos egzamino uždavinių sprendimai", tag: "Egzaminai" },
+  { title: "Rašinio planai ir argumentai", tag: "Lietuvių k." },
+  { title: "Kūrinių ir eilėraščių analizės", tag: "Literatūra" },
   { title: "Istorijos ir biologijos konspektai", tag: "Konspektai" },
-  { title: "Formulių ir sąvokų atmintinės", tag: "Atmintinės" },
   { title: "Savikontrolės testai su atsakymais", tag: "Testai" },
-  { title: "Korepetitoriaus pamokų medžiaga", tag: "Pamokos" },
+  { title: "Formulių ir sąvokų atmintinės", tag: "Atmintinės" },
 ];
 
 const steps = [
@@ -60,7 +60,7 @@ const faq = [
   },
   {
     q: "Ką galiu parduoti?",
-    a: "Tik savo sukurtą medžiagą: konspektus, užduočių sprendimus, testus, atmintines. Kitų autorių darbų ar vadovėlių kopijų — ne.",
+    a: "Tik savo sukurtą medžiagą: konspektus, užduočių sprendimus, analizes, testus, atmintines. Kitų autorių darbų ar vadovėlių kopijų — ne.",
   },
   {
     q: "Ar mano medžiagos niekas nenukopijuos?",
@@ -83,12 +83,12 @@ export default function Home() {
       <section className="border-b border-line bg-gradient-to-b from-brand-soft to-canvas">
         <div className="mx-auto max-w-6xl px-4 py-20 text-center sm:px-6 sm:py-28">
           <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
-            VBE konspektai ir mokymosi medžiaga —{" "}
+            Mokymosi medžiaga egzaminams ir pamokoms —{" "}
             <span className="text-brand">nuo tų, kurie jau išlaikė</span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-lg text-muted">
-            Mokytojai, korepetitoriai ir abiturientai dalinasi savo konspektais, išspręstomis
-            užduotimis ir testais. Lietuviškai, pagal tai, ko tikrai reikia VBE.
+            Mokytojai, korepetitoriai ir abiturientai dalinasi konspektais, išspręstomis
+            užduotimis, rašinių ir kūrinių analizėmis. Lietuviškai ir pagal tai, ko tikrai reikia.
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

@@ -7,7 +7,7 @@ import SearchSort from "./SearchSort";
 export const metadata = {
   title: "Produktai",
   description:
-    "VBE konspektai, užduočių sprendimai ir mokymosi medžiaga nuo mokytojų, korepetitorių ir abiturientų.",
+    "Konspektai, užduočių sprendimai ir mokymosi medžiaga egzaminams nuo mokytojų, korepetitorių ir abiturientų.",
 };
 
 type RawRow = Omit<ProductCardData, "seller"> & {

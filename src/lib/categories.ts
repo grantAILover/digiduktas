@@ -1,11 +1,11 @@
-// Kategorijos. Pagrindinė niša — VBE ir mokymosi medžiaga.
+// Kategorijos. Pagrindinė niša — mokymosi medžiaga (egzaminams ir pamokoms).
 //  active   — galima pasirinkti įkeliant, rodoma turguje
 //  soon     — rodoma kaip „netrukus", pasirinkti negalima
 //  disabled — nebenaudojama (autorių teisių rizika); lieka tik senų produktų pavadinimui
 export type CategoryStatus = "active" | "soon" | "disabled";
 
 export const CATEGORIES = [
-  { slug: "vbe", name: "VBE ir egzaminai", status: "active" },
+  { slug: "vbe", name: "Egzaminai", status: "active" },
   { slug: "mokykline", name: "Mokyklinė medžiaga", status: "active" },
   { slug: "sablonai", name: "Šablonai", status: "soon" },
   { slug: "grafika", name: "Grafika ir dizainas", status: "soon" },
