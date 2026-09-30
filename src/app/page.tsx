@@ -1,65 +1,78 @@
 import WaitlistForm from "@/components/WaitlistForm";
 import { CoverPlaceholder } from "@/components/ProductCard";
 
-const categories = [
-  { name: "Grafika ir dizainas" },
-  { name: "Šablonai" },
-  { name: "Presetai ir filtrai" },
-  { name: "E-knygos ir gidai" },
-  { name: "Kursai" },
-  { name: "Muzika ir garsai" },
+// Pagrindinė žinutė — VBE ir mokymosi medžiaga. Kitos kategorijos — „netrukus".
+const comingSoon = ["Šablonai", "Grafika ir dizainas", "Presetai ir filtrai", "Vaizdo kursai"];
+
+const benefits = [
+  {
+    title: "Tavo failas apsaugotas",
+    text: "Gali leisti pirkėjams tik peržiūrėti medžiagą naršyklėje — be atsisiuntimo.",
+  },
+  {
+    title: "Jokių mėnesinių mokesčių",
+    text: "Registracija ir įkėlimas nemokami. Moki tik tada, kai parduodi.",
+  },
+  {
+    title: "Vieną kartą sukūrei — parduodi daug kartų",
+    text: "Tas pats konspektas gali padėti šimtams moksleivių visoje Lietuvoje.",
+  },
 ];
 
-const values = [
+const audiences = [
   {
-    title: "Sukurta Lietuvai",
-    text: "Lietuviški kūrėjai, lietuviškas turinys ir aiškios kainos eurais — be užsienio tarpininkų.",
+    title: "Mokytojams",
+    text: "Konspektai, užduočių rinkiniai ir kartojimo medžiaga, kurią jau naudojate pamokose.",
   },
   {
-    title: "Pinigai tiesiai jums",
-    text: "Parduokite savo kūrybą, o uždarbis keliauja tiesiai į jūsų banko sąskaitą. Komisija maža ir aiški.",
+    title: "Korepetitoriams",
+    text: "Pamokų medžiaga ir sprendimų pavyzdžiai — papildomos pajamos be papildomų valandų.",
   },
   {
-    title: "Saugu abiem pusėm",
-    text: "Pirkėjas gauna failą iškart po apmokėjimo per apsaugotą nuorodą. Jokių rūpesčių.",
+    title: "Abiturientams",
+    text: "Išlaikei VBE? Tavo konspektai gali padėti kitiems — ir tau uždirbti.",
   },
 ];
 
 const examples = [
-  { title: "Notion ir Excel šablonai", tag: "Šablonai" },
-  { title: "Lightroom presetų rinkiniai", tag: "Presetai" },
-  { title: "CV ir dokumentų šablonai", tag: "Šablonai" },
-  { title: "Muzika, garsai ir efektai", tag: "Muzika" },
-  { title: "Iliustracijos ir ikonos", tag: "Grafika" },
-  { title: "Vaizdo kursai ir gidai", tag: "Kursai" },
+  { title: "Matematikos VBE uždavinių sprendimai", tag: "VBE" },
+  { title: "Lietuvių kalbos rašinio planai ir argumentai", tag: "VBE" },
+  { title: "Istorijos ir biologijos konspektai", tag: "Konspektai" },
+  { title: "Formulių ir sąvokų atmintinės", tag: "Atmintinės" },
+  { title: "Savikontrolės testai su atsakymais", tag: "Testai" },
+  { title: "Korepetitoriaus pamokų medžiaga", tag: "Pamokos" },
 ];
 
 const steps = [
-  { n: "1", title: "Susikurkite paskyrą", text: "Prisijunkite per el. paštą — nemokamai, per minutę." },
-  { n: "2", title: "Įkelkite savo produktą", text: "Failą, aprašymą ir kainą. Peržiūrėsim ir paskelbsim." },
-  { n: "3", title: "Gaukite pinigus", text: "Pirkėjai apmoka, uždarbis keliauja tiesiai jums." },
+  { n: "1", title: "Užsiregistruok", text: "Palik el. paštą — susisieksime ir padėsime pradėti." },
+  { n: "2", title: "Įkelk medžiagą", text: "Failas, trumpas aprašymas ir kaina. Peržiūrime ir paskelbiame." },
+  { n: "3", title: "Gauk pinigus", text: "Moksleiviai perka, pinigai keliauja į tavo banko sąskaitą." },
 ];
 
 const faq = [
   {
-    q: "Kada startuojate?",
-    a: "Netrukus. Užsiregistruokite į laukiančiųjų sąrašą ir pranešime jums vieniems pirmųjų, kai atidarysime duris.",
+    q: "Kiek kainuoja parduoti?",
+    a: "Registracija nemokama. Pirmą savaitę — 0 % komisijos, vėliau 10 % nuo kiekvieno pardavimo. Jokių mėnesinių mokesčių.",
   },
   {
-    q: "Kiek kainuoja parduoti?",
-    a: "Registracija ir produktų įkėlimas — nemokami. Imsime tik nedidelę, aiškią komisiją nuo kiekvieno pardavimo.",
+    q: "Kas gali parduoti?",
+    a: "Mokytojai, korepetitoriai, abiturientai ir visi, kas kuria mokymosi medžiagą. Parduoti gali asmenys nuo 18 metų.",
   },
   {
     q: "Ką galiu parduoti?",
-    a: "Bet kokį savo sukurtą skaitmeninį produktą: šablonus, presetus, e-knygas, kursus, grafiką, muziką ir kt.",
+    a: "Tik savo sukurtą medžiagą: konspektus, užduočių sprendimus, testus, atmintines. Kitų autorių darbų ar vadovėlių kopijų — ne.",
+  },
+  {
+    q: "Ar mano medžiagos niekas nenukopijuos?",
+    a: "Gali pasirinkti, kad pirkėjai failą tik peržiūrėtų naršyklėje, be atsisiuntimo. Failai saugomi privačiai, o prieigos nuorodos galioja vos kelias minutes.",
   },
   {
     q: "Kaip gausiu pinigus?",
-    a: "Per saugų mokėjimų tiekėją uždarbis bus pervedamas tiesiai į jūsų banko sąskaitą.",
+    a: "Per saugią mokėjimų sistemą Stripe — pinigai pervedami tiesiai į tavo banko sąskaitą.",
   },
   {
-    q: "Ar saugu pirkti?",
-    a: "Taip. Sumokėję iškart gaunate failą per apsaugotą, laikiną atsisiuntimo nuorodą.",
+    q: "Kada startuojate?",
+    a: "Dabar renkame pirmuosius pardavėjus. Užsiregistruok — susisieksime asmeniškai ir padėsime įkelti pirmą medžiagą.",
   },
 ];
 
@@ -70,63 +83,97 @@ export default function Home() {
       <section className="border-b border-line bg-gradient-to-b from-brand-soft to-canvas">
         <div className="mx-auto max-w-6xl px-4 py-20 text-center sm:px-6 sm:py-28">
           <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
-            Pirkite ir parduokite{" "}
-            <span className="text-brand">skaitmeninius produktus</span> lietuviškai
+            VBE konspektai ir mokymosi medžiaga —{" "}
+            <span className="text-brand">nuo tų, kurie jau išlaikė</span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-lg text-muted">
-            Šablonai, presetai, e-knygos, kursai — sukurti kūrėjų iš Lietuvos.
-            Netrukus startuojame. Palikite el. paštą ir sužinokite pirmi.
+            Mokytojai, korepetitoriai ir abiturientai dalinasi savo konspektais, išspręstomis
+            užduotimis ir testais. Lietuviškai, pagal tai, ko tikrai reikia VBE.
           </p>
-          <WaitlistForm />
-          <p className="mt-4 text-xs text-muted">
-            Be spamo. Vienas laiškas, kai atidarysime duris.
-          </p>
-          <div className="mt-6">
+
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a
-              href="/naujienos"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-brand hover:text-brand"
+              href="#pardavejas"
+              className="w-full rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark sm:w-auto"
             >
-              Kas jau veikia? Peržiūrėti naujienas
-              <span aria-hidden>→</span>
+              Tapk pirmuoju pardavėju
+            </a>
+            <a
+              href="#pirkejas"
+              className="w-full rounded-lg border border-line bg-surface px-6 py-3 text-sm font-semibold text-ink transition-colors hover:border-brand hover:text-brand sm:w-auto"
+            >
+              Noriu pirkti
+            </a>
+          </div>
+
+          <p className="mx-auto mt-6 w-fit rounded-lg border border-brand/30 bg-surface px-4 py-2 text-sm">
+            <span className="font-semibold text-brand">Pirmą savaitę — 0 % komisijos.</span>{" "}
+            <span className="text-muted">Visa kaina keliauja tau.</span>
+          </p>
+
+          <div className="mt-5">
+            <a href="/naujienos" className="text-sm text-muted transition-colors hover:text-brand">
+              Kas jau veikia? Naujienos →
             </a>
           </div>
         </div>
       </section>
 
-      {/* Vertė */}
+      {/* Pasiūlymas pardavėjams */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <div className="grid gap-6 sm:grid-cols-3">
-          {values.map((v) => (
-            <div key={v.title} className="rounded-xl border border-line bg-surface p-6">
-              <h3 className="text-lg font-semibold">{v.title}</h3>
-              <p className="mt-2 text-sm text-muted">{v.text}</p>
+        <h2 className="text-2xl font-bold tracking-tight">Uždirbk iš to, ką jau sukūrei</h2>
+        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+          {/* Skaičiai */}
+          <div className="rounded-xl border border-brand/30 bg-surface p-6">
+            <p className="text-sm text-muted">Pavyzdžiui, parduodi konspektą už</p>
+            <p className="mt-1 text-3xl font-bold">5,00 €</p>
+            <div className="mt-5 flex flex-col gap-3 text-sm">
+              <div className="flex items-center justify-between rounded-lg bg-brand-soft px-4 py-3">
+                <span>
+                  Pirmą savaitę <span className="text-muted">(0 % komisijos)</span>
+                </span>
+                <span className="font-bold text-brand">gauni 5,00 €</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border border-line px-4 py-3">
+                <span>
+                  Vėliau <span className="text-muted">(10 % komisija)</span>
+                </span>
+                <span className="font-bold">gauni 4,50 €</span>
+              </div>
+            </div>
+            <p className="mt-4 text-xs text-muted">
+              Kainą nustatai pats (nuo 3 €). Pinigai pervedami į tavo banko sąskaitą per Stripe.
+            </p>
+          </div>
+
+          {/* Privalumai */}
+          <div className="flex flex-col gap-4">
+            {benefits.map((b) => (
+              <div key={b.title} className="rounded-xl border border-line bg-surface p-5">
+                <h3 className="font-semibold">{b.title}</h3>
+                <p className="mt-1 text-sm text-muted">{b.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Kam */}
+      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        <div className="grid gap-4 sm:grid-cols-3">
+          {audiences.map((a) => (
+            <div key={a.title} className="rounded-xl border border-line bg-surface p-6">
+              <h3 className="text-lg font-semibold">{a.title}</h3>
+              <p className="mt-2 text-sm text-muted">{a.text}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Kategorijos */}
-      <section className="mx-auto max-w-6xl px-4 pb-4 sm:px-6">
-        <h2 className="text-2xl font-bold tracking-tight">Ką čia rasite</h2>
-        <p className="mt-2 text-sm text-muted">Kategorijos, kuriose kūrėjai galės parduoti.</p>
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {categories.map((c) => (
-            <div
-              key={c.name}
-              className="flex items-center justify-center rounded-xl border border-line bg-surface p-5 text-center"
-            >
-              <span className="text-sm font-medium">{c.name}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Ko tikėtis (pavyzdžiai, ne tikri įrašai) */}
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-        <h2 className="text-2xl font-bold tracking-tight">Ko tikėtis</h2>
-        <p className="mt-2 text-sm text-muted">
-          Pavyzdžiai, kokių produktų netrukus galėsite rasti ir parduoti.
-        </p>
+      {/* Ką galima parduoti (pavyzdžiai, ne tikri įrašai) */}
+      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        <h2 className="text-2xl font-bold tracking-tight">Ką galima parduoti</h2>
+        <p className="mt-2 text-sm text-muted">Pavyzdžiai — tavo medžiaga gali būti bet kurio dalyko.</p>
         <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
           {examples.map((p) => (
             <div
@@ -147,11 +194,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Kaip veiks */}
+      {/* Kaip veikia */}
       <section className="border-y border-line bg-surface">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <h2 className="text-center text-2xl font-bold tracking-tight">
-            Parduokite savo kūrybą per 3 žingsnius
+            Pradėk parduoti per 3 žingsnius
           </h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {steps.map((s) => (
@@ -167,22 +214,42 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Registracija (mygtukai viršuje veda čia ir parenka rolę) */}
+      <section id="registracija" className="relative mx-auto max-w-3xl px-4 py-16 text-center sm:px-6">
+        <span id="pardavejas" className="absolute -top-4" aria-hidden />
+        <span id="pirkejas" className="absolute -top-4" aria-hidden />
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Būk tarp pirmųjų</h2>
+        <p className="mx-auto mt-3 max-w-lg text-muted">
+          Palik el. paštą — pardavėjams padėsime įkelti pirmą medžiagą, pirkėjams pranešime,
+          kai atsiras pirmieji konspektai.
+        </p>
+        <WaitlistForm />
+        <p className="mt-4 text-xs text-muted">Be spamo. Tik svarbiausios žinios apie startą.</p>
+      </section>
+
+      {/* Netrukus */}
+      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        <div className="rounded-xl border border-dashed border-line p-6 text-center">
+          <h2 className="text-sm font-semibold text-muted">Netrukus ir kitos kategorijos</h2>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {comingSoon.map((c) => (
+              <span key={c} className="rounded-md bg-line/60 px-3 py-1 text-sm text-muted">
+                {c}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* DUK */}
-      <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-        <h2 className="text-center text-2xl font-bold tracking-tight">
-          Dažni klausimai
-        </h2>
+      <section className="mx-auto max-w-3xl px-4 pb-16 sm:px-6">
+        <h2 className="text-center text-2xl font-bold tracking-tight">Dažni klausimai</h2>
         <div className="mt-8 flex flex-col gap-3">
           {faq.map((item) => (
-            <details
-              key={item.q}
-              className="group rounded-xl border border-line bg-surface p-5"
-            >
+            <details key={item.q} className="group rounded-xl border border-line bg-surface p-5">
               <summary className="flex cursor-pointer list-none items-center justify-between font-medium">
                 {item.q}
-                <span className="text-brand transition-transform group-open:rotate-45">
-                  +
-                </span>
+                <span className="text-brand transition-transform group-open:rotate-45">+</span>
               </summary>
               <p className="mt-3 text-sm text-muted">{item.a}</p>
             </details>
@@ -194,12 +261,17 @@ export default function Home() {
       <section className="border-t border-line bg-gradient-to-b from-canvas to-brand-soft">
         <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Būkite pirmi, kai startuosime
+            Turi konspektų, kurie padėjo tau ar tavo mokiniams?
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-muted">
-            Palikite el. paštą — pranešime, kai galėsite pradėti pirkti ir parduoti.
+            Jie gali padėti ir kitiems. Pirmą savaitę — be jokios komisijos.
           </p>
-          <WaitlistForm />
+          <a
+            href="#pardavejas"
+            className="mt-6 inline-block rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
+          >
+            Tapk pirmuoju pardavėju
+          </a>
         </div>
       </section>
     </div>

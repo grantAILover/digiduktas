@@ -9,8 +9,8 @@ export default function Footer() {
           </span>
         </div>
         <p className="mx-auto max-w-md text-sm text-muted">
-          Lietuviška vieta pirkti ir parduoti skaitmeninius produktus. Netrukus
-          startuojame.
+          Lietuviška VBE ir mokymosi medžiaga nuo mokytojų, korepetitorių ir
+          abiturientų.
         </p>
         <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted">
           <a href="/produktai" className="transition-colors hover:text-ink">

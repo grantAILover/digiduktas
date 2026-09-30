@@ -1,59 +1,98 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { joinWaitlist, type WaitlistState } from "@/app/actions";
+import { readAttribution, type Attribution } from "@/lib/attribution";
+import { SELLER_TYPES } from "@/lib/sources";
 
 const roles = [
   { value: "seller", label: "Noriu parduoti" },
   { value: "buyer", label: "Noriu pirkti" },
-  { value: "both", label: "Abu" },
 ] as const;
 
-export default function WaitlistForm() {
-  const [state, formAction, pending] = useActionState<WaitlistState, FormData>(
-    joinWaitlist,
-    null,
-  );
-  const [role, setRole] = useState<string>("");
+const chip = (active: boolean) =>
+  `rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+    active ? "border-brand bg-brand text-surface" : "border-line bg-surface text-ink hover:border-brand"
+  }`;
 
-  if (state?.ok) {
-    return (
-      <div className="mx-auto mt-8 max-w-md rounded-xl border border-line bg-surface p-6 text-center">
-        <p className="font-semibold">Ačiū! Esate sąraše.</p>
-        <p className="mt-1 text-sm text-muted">
-          Pranešime jums pirmiems, kai digiduktas startuos.
-        </p>
-      </div>
-    );
-  }
+export default function WaitlistForm() {
+  const [state, formAction, pending] = useActionState<WaitlistState, FormData>(joinWaitlist, null);
+  const [role, setRole] = useState<string>("");
+  const [sellerType, setSellerType] = useState<string>("");
+  const [attr, setAttr] = useState<Attribution | null>(null);
+
+  // Mygtukai puslapyje veda į #pardavejas / #pirkejas — iškart parenkam rolę.
+  // Šaltinį (UTM / draugo kodą) paimam iš naršyklės.
+  useEffect(() => {
+    const apply = () => {
+      if (location.hash === "#pardavejas") setRole("seller");
+      if (location.hash === "#pirkejas") setRole("buyer");
+    };
+    const t = setTimeout(() => {
+      apply();
+      setAttr(readAttribution());
+    }, 0);
+    window.addEventListener("hashchange", apply);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("hashchange", apply);
+    };
+  }, []);
 
   return (
-    <form action={formAction} className="mx-auto mt-8 flex max-w-md flex-col gap-3">
+    <form action={formAction} className="mx-auto mt-8 flex max-w-md flex-col gap-4 text-left">
       <input type="hidden" name="role" value={role} />
+      <input type="hidden" name="seller_type" value={sellerType} />
+      <input type="hidden" name="referred_by" value={attr?.ref ?? ""} />
+      <input type="hidden" name="utm_source" value={attr?.utm_source ?? ""} />
+      <input type="hidden" name="utm_medium" value={attr?.utm_medium ?? ""} />
+      <input type="hidden" name="utm_campaign" value={attr?.utm_campaign ?? ""} />
+      <input type="hidden" name="referrer" value={attr?.referrer ?? ""} />
 
-      <div className="flex justify-center gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {roles.map((r) => (
-          <button
-            key={r.value}
-            type="button"
-            onClick={() => setRole(r.value)}
-            className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-              role === r.value
-                ? "border-brand bg-brand text-surface"
-                : "border-line bg-surface text-ink hover:border-brand"
-            }`}
-          >
+          <button key={r.value} type="button" onClick={() => setRole(r.value)} className={chip(role === r.value)}>
             {r.label}
           </button>
         ))}
       </div>
+
+      {role === "seller" && (
+        <div className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-4">
+          <div>
+            <p className="text-sm font-medium">Kas tu esi?</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {SELLER_TYPES.map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => setSellerType(t.value)}
+                  className={chip(sellerType === t.value)}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className="flex flex-col gap-1.5 text-sm font-medium">
+            Ką norėtum parduoti?
+            <textarea
+              name="wants_to_sell"
+              rows={2}
+              maxLength={500}
+              placeholder="Pvz.: matematikos VBE sprendimai, biologijos konspektai"
+              className="rounded-lg border border-line bg-canvas px-3 py-2.5 text-sm font-normal outline-none transition-colors focus:border-brand"
+            />
+          </label>
+        </div>
+      )}
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <input
           name="email"
           type="email"
           required
-          placeholder="vardas@pastas.lt"
+          placeholder="tavo@pastas.lt"
           className="flex-1 rounded-lg border border-line bg-surface px-4 py-3 text-sm outline-none transition-colors focus:border-brand"
         />
         <button
@@ -61,13 +100,11 @@ export default function WaitlistForm() {
           disabled={pending}
           className="rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark disabled:opacity-60"
         >
-          {pending ? "Palaukite…" : "Pranešti man"}
+          {pending ? "Palauk…" : role === "seller" ? "Noriu parduoti" : "Užsiregistruoti"}
         </button>
       </div>
 
-      {state?.error && (
-        <p className="text-center text-sm text-red-600">{state.error}</p>
-      )}
+      {state?.error && <p className="text-center text-sm text-red-600">{state.error}</p>}
     </form>
   );
 }

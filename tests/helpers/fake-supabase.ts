@@ -13,6 +13,7 @@ export type SignCall = {
 /** Unikalūs stulpeliai (kaip DB indeksai) — pažeidus grąžinama klaida 23505. */
 const UNIQUE: Record<string, string[]> = {
   orders: ["stripe_session_id"],
+  waitlist: ["email", "ref_code"],
 };
 
 export function createFakeSupabase(initial: Record<string, Row[]>) {

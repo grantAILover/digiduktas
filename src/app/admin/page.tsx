@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { sourceOf, sellerTypeLabel } from "@/lib/sources";
 import { categoryName } from "@/lib/categories";
 import { eur } from "@/components/ProductCard";
 import {
@@ -70,6 +72,18 @@ export default async function AdminPage() {
   // privačiam bucket'ui nėra skaitymo taisyklės.)
   const pendingWithUrls = pending ?? [];
 
+  // Laukiančiųjų sąrašas (lentelė pasiekiama tik service-role klientu)
+  const { data: waitlistRaw } = await createAdminClient()
+    .from("waitlist")
+    .select("id, email, role, seller_type, wants_to_sell, utm_source, referred_by, referrer, ref_code, created_at")
+    .order("created_at", { ascending: false });
+  const waitlist = waitlistRaw ?? [];
+  const sellersWaiting = waitlist.filter((w) => w.role === "seller" || w.role === "both").length;
+  const invitedBy = new Map<string, number>();
+  for (const w of waitlist) {
+    if (w.referred_by) invitedBy.set(w.referred_by, (invitedBy.get(w.referred_by) ?? 0) + 1);
+  }
+
   const btn =
     "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors";
 
@@ -79,6 +93,72 @@ export default async function AdminPage() {
       <p className="mt-1 text-sm text-muted">
         Pardavėjų paraiškos, produktų peržiūra ir valdymas.
       </p>
+
+      {/* 0. Laukiančiųjų sąrašas */}
+      <section className="mt-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">
+            Laukiančiųjų sąrašas <span className="text-muted">({waitlist.length})</span>
+          </h2>
+          <a
+            href="/admin/waitlist.csv"
+            className={`${btn} border border-line hover:bg-brand-soft`}
+          >
+            Atsisiųsti CSV
+          </a>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-brand/30 bg-surface p-4">
+            <p className="text-xs text-muted">Pardavėjai (tikslas 10)</p>
+            <p className="mt-1 text-2xl font-bold text-brand">{sellersWaiting} / 10</p>
+          </div>
+          <div className="rounded-xl border border-line bg-surface p-4">
+            <p className="text-xs text-muted">Pirkėjai</p>
+            <p className="mt-1 text-2xl font-bold">{waitlist.length - sellersWaiting}</p>
+          </div>
+          <div className="rounded-xl border border-line bg-surface p-4">
+            <p className="text-xs text-muted">Atėjo per pakvietimą</p>
+            <p className="mt-1 text-2xl font-bold">{waitlist.filter((w) => w.referred_by).length}</p>
+          </div>
+        </div>
+        {waitlist.length > 0 && (
+          <div className="mt-3 overflow-x-auto rounded-xl border border-line">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead className="bg-brand-soft text-xs text-brand-dark">
+                <tr>
+                  <th className="px-3 py-2 font-semibold">El. paštas</th>
+                  <th className="px-3 py-2 font-semibold">Rolė</th>
+                  <th className="px-3 py-2 font-semibold">Ką parduotų</th>
+                  <th className="px-3 py-2 font-semibold">Šaltinis</th>
+                  <th className="px-3 py-2 font-semibold">Pakvietė</th>
+                  <th className="px-3 py-2 font-semibold">Data</th>
+                </tr>
+              </thead>
+              <tbody>
+                {waitlist.map((w) => (
+                  <tr key={w.id} className="border-t border-line bg-surface align-top">
+                    <td className="px-3 py-2 font-medium">{w.email}</td>
+                    <td className="px-3 py-2 text-muted">
+                      {w.role === "seller" ? "Pardavėjas" : w.role === "buyer" ? "Pirkėjas" : "Abu"}
+                      {w.seller_type && (
+                        <span className="block text-xs">{sellerTypeLabel(w.seller_type)}</span>
+                      )}
+                    </td>
+                    <td className="max-w-56 px-3 py-2 text-muted">{w.wants_to_sell ?? "—"}</td>
+                    <td className="px-3 py-2 text-muted">{sourceOf(w)}</td>
+                    <td className="px-3 py-2 text-muted">
+                      {w.ref_code ? invitedBy.get(w.ref_code) ?? 0 : 0}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2 text-xs text-muted">
+                      {new Date(w.created_at).toLocaleDateString("lt-LT")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       {/* 1. Pardavėjų paraiškos */}
       <section className="mt-8">
