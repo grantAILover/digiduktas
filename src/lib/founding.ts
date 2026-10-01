@@ -2,8 +2,8 @@
 
 export const FOUNDING_LIMIT = 20;
 /** Iki kada founding pardavėjams netaikoma komisija (imtinai, Vilniaus laiku). */
-export const FOUNDING_UNTIL = new Date("2027-06-30T23:59:59+03:00");
-export const FOUNDING_UNTIL_LABEL = "2027 m. birželio 30 d.";
+export const FOUNDING_UNTIL = new Date("2026-12-31T23:59:59+02:00");
+export const FOUNDING_UNTIL_LABEL = "2026 m. gruodžio 31 d.";
 
 /** Bonusas: pirmiems N founding pardavėjų už pirmus pardavimus skirtingiems pirkėjams. */
 export const BONUS_SELLERS = 10;
