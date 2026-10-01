@@ -71,7 +71,7 @@ export function RightsCheckbox({
         className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
       />
       <span>
-        Patvirtinu, kad turinys yra mano paties sukurtas arba turiu teisę jį parduoti.
+        Patvirtinu, kad turinys yra mano sukurtas (arba turiu teisę jį parduoti) ir kad man yra 18 metų.
         <span className="mt-0.5 block text-xs text-muted">
           Svetimų darbų, vadovėlių ar kitų leidinių kopijos draudžiamos.{" "}
           <a href="/taisykles#pazeidimai" target="_blank" className="text-brand hover:underline">

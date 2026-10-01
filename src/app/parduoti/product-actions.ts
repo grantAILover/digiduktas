@@ -88,7 +88,10 @@ export async function updateProduct(
     // Nauji failai → naujas patvirtinimas dėl teisių
     if (input.files.some((f) => !isExisting(f))) {
       if (input.rightsConfirmed !== true) {
-        return { error: "Patvirtinkite, kad naujų failų turinys yra jūsų sukurtas arba turite teisę jį parduoti." };
+        return {
+          error:
+            "Patvirtinkite, kad naujų failų turinys yra jūsų sukurtas (arba turite teisę jį parduoti) ir kad jums yra 18 metų.",
+        };
       }
       patch.rights_confirmed_at = new Date().toISOString();
     }

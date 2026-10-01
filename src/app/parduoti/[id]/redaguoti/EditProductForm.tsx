@@ -128,7 +128,9 @@ export default function EditProductForm({
 
       if (fileItems.length === 0) throw new Error("Palikite bent vieną parduodamą failą.");
       if (hasNewFiles && !rightsConfirmed) {
-        throw new Error("Patvirtinkite, kad naujų failų turinys yra jūsų sukurtas arba turite teisę jį parduoti.");
+        throw new Error(
+          "Patvirtinkite, kad naujų failų turinys yra jūsų sukurtas (arba turite teisę jį parduoti) ir kad jums yra 18 metų.",
+        );
       }
       const uploadedFiles = await uploadFileItems(supabase, user.id, fileItems);
 

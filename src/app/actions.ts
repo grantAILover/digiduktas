@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SELLER_TYPES } from "@/lib/sources";
 import { claimFoundingSlot } from "@/lib/founding-server";
+import { normalizeContact } from "@/lib/contact";
 
 export type WaitlistState = { error?: string } | null;
 
@@ -45,12 +46,19 @@ export async function joinWaitlist(
     return { error: "Pasirink, kas tu esi (mokytojas, korepetitorius, abiturientas ar kita)." };
   }
 
+  // Pardavėjui — privalomas kontaktas asmeniniam susisiekimui (Instagram arba telefonas)
+  const contact = role === "seller" ? normalizeContact(clean(formData.get("contact"), 100)) : null;
+  if (role === "seller" && !contact) {
+    return { error: "Įrašyk Instagram vardą (pvz. @vardas) arba telefono numerį, kad galėtume susisiekti." };
+  }
+
   const ref = clean(formData.get("referred_by"), 16)?.toLowerCase() ?? null;
   const row = {
     email,
     role,
     seller_type: role === "seller" ? sellerType : null,
     wants_to_sell: role === "seller" ? clean(formData.get("wants_to_sell"), 500) : null,
+    contact,
     referred_by: ref && CODE_RE.test(ref) ? ref : null,
     utm_source: clean(formData.get("utm_source"), 100),
     utm_medium: clean(formData.get("utm_medium"), 100),
@@ -81,6 +89,7 @@ export async function joinWaitlist(
         patch.role = "seller";
         patch.seller_type = row.seller_type;
         patch.wants_to_sell = row.wants_to_sell;
+        patch.contact = row.contact;
       }
       const existingCode = existing.ref_code ?? code;
       if (!existing.ref_code) patch.ref_code = existingCode;

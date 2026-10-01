@@ -99,7 +99,9 @@ export async function createProduct(
   if (!title) return { error: "Įrašykite pavadinimą." };
   if (!isActiveCategory(input.category)) return { error: "Pasirinkite kategoriją." };
   if (input.rightsConfirmed !== true) {
-    return { error: "Patvirtinkite, kad turinys yra jūsų sukurtas arba turite teisę jį parduoti." };
+    return {
+      error: "Patvirtinkite, kad turinys yra jūsų sukurtas (arba turite teisę jį parduoti) ir kad jums yra 18 metų.",
+    };
   }
 
   const countError = checkFileCount(input.files?.length ?? 0);

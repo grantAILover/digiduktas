@@ -42,6 +42,7 @@ describe("Laukiančiųjų sąrašas — registracija", () => {
       role: "seller",
       seller_type: "mokytojas",
       wants_to_sell: "Biologijos konspektai",
+      contact: "https://www.instagram.com/Mokytoja.Bio/",
       utm_source: "tiktok",
       referred_by: "abcd1234",
     });
@@ -51,6 +52,7 @@ describe("Laukiančiųjų sąrašas — registracija", () => {
       role: "seller",
       seller_type: "mokytojas",
       wants_to_sell: "Biologijos konspektai",
+      contact: "@mokytoja.bio",
       utm_source: "tiktok",
       referred_by: "abcd1234",
     });
@@ -58,14 +60,28 @@ describe("Laukiančiųjų sąrašas — registracija", () => {
   });
 
   it("pardavėjas privalo pasirinkti, kas jis yra", async () => {
-    const r = await submit({ email: "a@b.lt", role: "seller" });
+    const r = await submit({ email: "a@b.lt", role: "seller", contact: "@vardas" });
     expect(r.state?.error).toMatch(/kas tu esi/i);
     expect(rows()).toHaveLength(0);
   });
 
-  it("pirkėjui pardavėjo laukai neišsaugomi", async () => {
-    await submit({ email: "p@b.lt", role: "buyer", seller_type: "mokytojas", wants_to_sell: "x" });
-    expect(rows()[0]).toMatchObject({ role: "buyer", seller_type: null, wants_to_sell: null });
+  it("pardavėjas privalo nurodyti Instagram arba telefoną", async () => {
+    const none = await submit({ email: "a@b.lt", role: "seller", seller_type: "mokytojas" });
+    expect(none.state?.error).toMatch(/Instagram/);
+    const bad = await submit({ email: "a@b.lt", role: "seller", seller_type: "mokytojas", contact: "!!" });
+    expect(bad.state?.error).toMatch(/Instagram/);
+    expect(rows()).toHaveLength(0);
+  });
+
+  it("kontaktas suvienodinamas: telefonas ir Instagram vardas", async () => {
+    await submit({ email: "a@b.lt", role: "seller", seller_type: "kita", contact: "+370 612 34567" });
+    await submit({ email: "c@b.lt", role: "seller", seller_type: "kita", contact: "Jonas_Mokytojas" });
+    expect(rows().map((r) => r.contact)).toEqual(["+37061234567", "@jonas_mokytojas"]);
+  });
+
+  it("pirkėjui pardavėjo laukai ir kontaktas neišsaugomi", async () => {
+    await submit({ email: "p@b.lt", role: "buyer", seller_type: "mokytojas", wants_to_sell: "x", contact: "@x1" });
+    expect(rows()[0]).toMatchObject({ role: "buyer", seller_type: null, wants_to_sell: null, contact: null });
   });
 
   it("neteisingas el. paštas ar rolė — klaida", async () => {
@@ -83,9 +99,20 @@ describe("Laukiančiųjų sąrašas — registracija", () => {
 
   it("pirkėjas vėliau užsiregistravęs kaip pardavėjas — tampa pardavėju", async () => {
     await submit({ email: "a@b.lt", role: "buyer" });
-    const r = await submit({ email: "a@b.lt", role: "seller", seller_type: "abiturientas", wants_to_sell: "Chemija" });
+    const r = await submit({
+      email: "a@b.lt",
+      role: "seller",
+      seller_type: "abiturientas",
+      wants_to_sell: "Chemija",
+      contact: "861234567",
+    });
     expect(rows()).toHaveLength(1);
-    expect(rows()[0]).toMatchObject({ role: "seller", seller_type: "abiturientas", wants_to_sell: "Chemija" });
+    expect(rows()[0]).toMatchObject({
+      role: "seller",
+      seller_type: "abiturientas",
+      wants_to_sell: "Chemija",
+      contact: "861234567",
+    });
     expect(r.redirect).toContain("r=seller");
   });
 

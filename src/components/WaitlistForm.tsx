@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { joinWaitlist, type WaitlistState } from "@/app/actions";
-import { readAttribution, type Attribution } from "@/lib/attribution";
+import { attributionFromLocation, type Attribution } from "@/lib/attribution";
 import { SELLER_TYPES } from "@/lib/sources";
 import { BONUS_OFFER, FOUNDING_LIMIT, FOUNDING_OFFER } from "@/lib/founding";
 
@@ -23,7 +23,7 @@ export default function WaitlistForm({ foundingRemaining = null }: { foundingRem
   const [attr, setAttr] = useState<Attribution | null>(null);
 
   // Mygtukai puslapyje veda į #pardavejas / #pirkejas — iškart parenkam rolę.
-  // Šaltinį (UTM / draugo kodą) paimam iš naršyklės.
+  // Šaltinį (UTM / draugo kodą) paimam iš dabartinės nuorodos (nieko nesaugom).
   useEffect(() => {
     const apply = () => {
       if (location.hash === "#pardavejas") setRole("seller");
@@ -31,7 +31,7 @@ export default function WaitlistForm({ foundingRemaining = null }: { foundingRem
     };
     const t = setTimeout(() => {
       apply();
-      setAttr(readAttribution());
+      setAttr(attributionFromLocation());
     }, 0);
     window.addEventListener("hashchange", apply);
     return () => {
@@ -84,6 +84,21 @@ export default function WaitlistForm({ foundingRemaining = null }: { foundingRem
               ))}
             </div>
           </div>
+          <label className="flex flex-col gap-1.5 text-sm font-medium">
+            Instagram arba telefonas
+            <input
+              name="contact"
+              type="text"
+              required
+              maxLength={100}
+              autoComplete="off"
+              placeholder="@tavo_vardas arba +370 6…"
+              className="rounded-lg border border-line bg-canvas px-3 py-2.5 text-sm font-normal outline-none transition-colors focus:border-brand"
+            />
+            <span className="text-xs font-normal text-muted">
+              Susisieksime asmeniškai ir padėsime įkelti pirmą medžiagą.
+            </span>
+          </label>
           <label className="flex flex-col gap-1.5 text-sm font-medium">
             Ką norėtum parduoti?
             <textarea

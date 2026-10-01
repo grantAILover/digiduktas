@@ -1,5 +1,6 @@
-// Šaltinio fiksavimas naršyklėje (UTM žymės, draugo pakvietimas, iš kur atėjo).
-// Saugoma tik šiame įrenginyje (localStorage), be slapukų. Tik naršyklei.
+// Iš kur atėjo žmogus — paimama iš dabartinės nuorodos (UTM žymės, draugo kodas)
+// ir svetainės, iš kurios atėjo. NIEKO nesaugoma naršyklėje (jokių slapukų ar
+// localStorage), todėl sutikimo nereikia. Tik naršyklei.
 
 export type Attribution = {
   utm_source?: string;
@@ -9,42 +10,22 @@ export type Attribution = {
   ref?: string;
 };
 
-const KEY = "dd_attr";
-
-export function readAttribution(): Attribution | null {
-  try {
-    return JSON.parse(localStorage.getItem(KEY) ?? "null");
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Pirmas apsilankymas su šaltiniu laimi („first touch") — kad matytum, kuris kanalas
- * žmogų atvedė pirmą kartą. Draugo kodas įsimenamas, jei dar nebuvo.
- */
-export function captureAttribution() {
+export function attributionFromLocation(): Attribution {
+  const out: Attribution = {};
   try {
     const params = new URLSearchParams(location.search);
-    const fresh: Attribution = {};
     for (const k of ["utm_source", "utm_medium", "utm_campaign"] as const) {
       const v = params.get(k);
-      if (v) fresh[k] = v.trim().toLowerCase().slice(0, 100);
+      if (v) out[k] = v.trim().toLowerCase().slice(0, 100);
     }
     const ref = params.get("ref");
-    if (ref && /^[a-z0-9]{4,16}$/i.test(ref)) fresh.ref = ref.toLowerCase();
+    if (ref && /^[a-z0-9]{4,16}$/i.test(ref)) out.ref = ref.toLowerCase();
     if (document.referrer) {
       const host = new URL(document.referrer).host;
-      if (host && host !== location.host) fresh.referrer = host.slice(0, 100);
-    }
-
-    const existing = readAttribution();
-    if (!existing) {
-      if (Object.keys(fresh).length) localStorage.setItem(KEY, JSON.stringify(fresh));
-    } else if (fresh.ref && !existing.ref) {
-      localStorage.setItem(KEY, JSON.stringify({ ...existing, ref: fresh.ref }));
+      if (host && host !== location.host) out.referrer = host.slice(0, 100);
     }
   } catch {
-    // privatus langas / užblokuota saugykla — tiesiog nefiksuojam
+    // nekritinis
   }
+  return out;
 }

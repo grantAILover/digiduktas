@@ -61,7 +61,10 @@ describe("Pirmųjų 20 pardavėjų vietos", () => {
       joinWaitlist(null, form({ email: "pirkejas@b.lt", role: "buyer" })),
     ).rejects.toThrow("REDIRECT");
     await expect(
-      joinWaitlist(null, form({ email: "mokytoja@b.lt", role: "seller", seller_type: "mokytojas" })),
+      joinWaitlist(
+        null,
+        form({ email: "mokytoja@b.lt", role: "seller", seller_type: "mokytojas", contact: "@mokytoja" }),
+      ),
     ).rejects.toThrow("REDIRECT");
     expect(h.fake.tables.founding_slots.map((s) => s.email)).toEqual(["mokytoja@b.lt"]);
   });

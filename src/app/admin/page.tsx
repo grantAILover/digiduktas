@@ -76,7 +76,7 @@ export default async function AdminPage() {
   // Laukiančiųjų sąrašas (lentelė pasiekiama tik service-role klientu)
   const { data: waitlistRaw } = await createAdminClient()
     .from("waitlist")
-    .select("id, email, role, seller_type, wants_to_sell, utm_source, referred_by, referrer, ref_code, created_at")
+    .select("id, email, role, seller_type, wants_to_sell, contact, utm_source, referred_by, referrer, ref_code, created_at")
     .order("created_at", { ascending: false });
   const waitlist = waitlistRaw ?? [];
   const sellersWaiting = waitlist.filter((w) => w.role === "seller" || w.role === "both").length;
@@ -165,7 +165,10 @@ export default async function AdminPage() {
               <tbody>
                 {waitlist.map((w) => (
                   <tr key={w.id} className="border-t border-line bg-surface align-top">
-                    <td className="px-3 py-2 font-medium">{w.email}</td>
+                    <td className="px-3 py-2 font-medium">
+                      {w.email}
+                      {w.contact && <span className="block text-xs font-normal text-brand-dark">{w.contact}</span>}
+                    </td>
                     <td className="px-3 py-2 text-muted">
                       {w.role === "seller" ? "Pardavėjas" : w.role === "buyer" ? "Pirkėjas" : "Abu"}
                       {w.seller_type && (

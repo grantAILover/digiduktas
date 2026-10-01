@@ -81,7 +81,9 @@ export default function ProductForm() {
       if (!title) throw new Error("Įrašykite pavadinimą.");
       if (fileItems.length === 0) throw new Error("Pasirinkite bent vieną parduodamą failą.");
       if (!rightsConfirmed) {
-        throw new Error("Patvirtinkite, kad turinys yra jūsų sukurtas arba turite teisę jį parduoti.");
+        throw new Error(
+          "Patvirtinkite, kad turinys yra jūsų sukurtas (arba turite teisę jį parduoti) ir kad jums yra 18 metų.",
+        );
       }
 
       const supabase = createClient();

@@ -56,7 +56,7 @@ export default function TaisyklesPage() {
         <Bullets
           items={[
             "Parduoti tik savo sukurtus arba turimas teises parduoti produktus.",
-            "Prieš įkeliant produktą patvirtinti, kad turinys yra savo sukurtas arba turima teisė jį parduoti (patvirtinimo laikas išsaugomas).",
+            "Prieš įkeliant produktą patvirtinti, kad turinys yra savo sukurtas arba turima teisė jį parduoti, ir kad pardavėjui yra 18 metų (patvirtinimo laikas išsaugomas).",
             "Nekelti turinio, pažeidžiančio autorių teises, prekių ženklus ar įstatymus.",
             "Pateikti teisingą produkto aprašymą; produktas turi atitikti aprašymą.",
             "Įkelti veikiantį failą ir užtikrinti jo prieinamumą pirkėjui.",

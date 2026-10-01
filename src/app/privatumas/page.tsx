@@ -38,6 +38,7 @@ export default function PrivatumasPage() {
         <Bullets
           items={[
             <><strong>Paskyros duomenys:</strong> el. paštas, vardas (slapyvardis), profilio nuotrauka, aprašymas.</>,
+            <><strong>Laukiančiųjų sąrašas:</strong> el. paštas, ar norite pirkti ar parduoti; pardavėjams — kas esate (mokytojas, korepetitorius, abiturientas), ką norėtumėte parduoti ir kontaktas (Instagram ar telefonas), kad galėtume asmeniškai susisiekti; iš kur atėjote (nuorodos žymė ar pakvietimo kodas).</>,
             <><strong>Pardavėjo duomenys:</strong> paraiškos informacija, tapatybės ir banko duomenys (juos tvarko Stripe — žr. 4 skyrių).</>,
             <><strong>Pirkimų duomenys:</strong> įsigyti produktai, sumos, sandorių istorija.</>,
             <><strong>Turinys:</strong> jūsų įkelti produktai, aprašymai, atsiliepimai, pranešimai.</>,
@@ -107,9 +108,15 @@ export default function PrivatumasPage() {
 
       <Section n={7} title="Slapukai">
         <p>
-          Naudojame tik būtinuosius slapukus, reikalingus prisijungimui ir
-          svetainės veikimui, bei anoniminę lankomumo statistiką. Nenaudojame
-          reklaminių trečiųjų šalių slapukų.
+          Naudojame tik slapukus, būtinus prisijungimui ir svetainės veikimui —
+          jiems sutikimo nereikia. Reklaminių, sekimo ar trečiųjų šalių slapukų
+          nenaudojame. Lankomumą skaičiuojame anonimiškai ir be slapukų.
+        </p>
+        <p>
+          Iš kur atėjote (nuorodos žymė ar pakvietimo kodas), nustatome tik iš
+          atidarytos nuorodos tuo metu, kai registruojatės — naršyklėje to
+          nesaugome. Peržiūrėdami PDF, paskutinis puslapis įsimenamas jūsų
+          naršyklėje, kad galėtumėte tęsti, kur baigėte.
         </p>
       </Section>
 

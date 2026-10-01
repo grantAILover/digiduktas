@@ -30,13 +30,14 @@ export async function GET() {
   for (const r of list) if (r.referred_by) invited.set(r.referred_by, (invited.get(r.referred_by) ?? 0) + 1);
 
   const header = [
-    "data", "el_pastas", "role", "kas", "ka_parduotu", "saltinis",
+    "data", "el_pastas", "kontaktas", "role", "kas", "ka_parduotu", "saltinis",
     "utm_medium", "utm_campaign", "atejo_is", "pakviete_kodas", "ref_kodas", "pakvieste_zmoniu",
   ];
   const lines = list.map((r) =>
     [
       new Date(r.created_at).toLocaleString("lt-LT", { timeZone: "Europe/Vilnius" }),
       r.email,
+      r.contact,
       r.role === "seller" ? "pardavėjas" : r.role === "buyer" ? "pirkėjas" : r.role ?? "",
       sellerTypeLabel(r.seller_type),
       r.wants_to_sell,
