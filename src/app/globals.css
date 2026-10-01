@@ -25,6 +25,13 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Labai siauri telefonai (iki 359 px) — slepiam antraeilius elementus */
+@media (max-width: 359px) {
+  .hide-xs {
+    display: none;
+  }
+}
+
 /* Kai pardavėjas neleidžia atsisiųsti — turinys nespausdinamas (Ctrl+P) */
 @media print {
   .no-print {
