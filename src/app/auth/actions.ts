@@ -14,6 +14,11 @@ function translate(message: string): string {
   if (m.includes("password should be at least")) return "Slaptažodis per trumpas (min. 6 simboliai).";
   if (m.includes("unable to validate email")) return "Neteisingas el. pašto formatas.";
   if (m.includes("email not confirmed")) return "El. paštas dar nepatvirtintas. Patikrinkite pašto dėžutę.";
+  if (m.includes("error sending") && m.includes("email"))
+    return "Nepavyko išsiųsti patvirtinimo laiško. Pabandykite po kelių minučių arba parašykite mums.";
+  if (m.includes("rate limit") || m.includes("security purposes"))
+    return "Per daug bandymų. Palaukite kelias minutes ir bandykite dar kartą.";
+  if (m.includes("weak") && m.includes("password")) return "Slaptažodis per silpnas — naudokite ilgesnį.";
   return message;
 }
 

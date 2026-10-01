@@ -1,9 +1,6 @@
-"use server";
-
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import { requestOrigin } from "@/lib/site";
 
 /** Ar Stripe paskyra egzistuoja DABARTINIAME režime (test paskyros live režime nėra). */
@@ -18,22 +15,24 @@ async function accountExists(stripe: Stripe, accountId: string): Promise<boolean
   }
 }
 
-// Sukuria (jei reikia) pardavėjo Stripe Connect paskyrą ir nukreipia į onboarding
-export async function connectStripe() {
+/**
+ * Sukuria (jei reikia) pardavėjo Stripe Connect paskyrą ir grąžina adresą,
+ * į kurį nukreipti: Stripe onboarding arba mūsų puslapį su klaida.
+ */
+export async function stripeOnboardingTarget(): Promise<string> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/auth");
+  if (!user) return "/auth";
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("stripe_account_id, is_seller, display_name")
     .eq("id", user.id)
     .single();
-  if (!profile?.is_seller) redirect("/parduoti");
+  if (!profile?.is_seller) return "/parduoti";
 
-  let url: string;
   try {
     const stripe = getStripe();
     let accountId = profile.stripe_account_id;
@@ -77,12 +76,12 @@ export async function connectStripe() {
         },
       },
     });
-    url = link.url;
+    return link.url;
   } catch (e) {
     // Priežastis — serverio loguose (Vercel → Logs); pardavėjui — aiškus pranešimas
     console.error("connectStripe nepavyko:", e instanceof Error ? e.message : e);
-    redirect("/parduoti?stripe=klaida");
+    const err = e as { code?: string; type?: string; statusCode?: number };
+    const code = String(err.code ?? err.type ?? err.statusCode ?? "nezinoma").replace(/[^\w.-]/g, "").slice(0, 60);
+    return `/parduoti?stripe=klaida&kodas=${encodeURIComponent(code)}`;
   }
-
-  redirect(url);
 }

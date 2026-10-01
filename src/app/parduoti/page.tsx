@@ -3,8 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { categoryName } from "@/lib/categories";
 import { getPayoutStatus } from "@/lib/stripe";
 import SellerApplicationForm from "./SellerApplicationForm";
-import { connectStripe } from "./stripe-actions";
 import DeleteProductButton from "./DeleteProductButton";
+import ConnectStripeButton from "./ConnectStripeButton";
 import { CoverPlaceholder } from "@/components/ProductCard";
 import { isFoundingSeller } from "@/lib/founding-server";
 import { FOUNDING_LIMIT, FOUNDING_UNTIL_LABEL, foundingActive } from "@/lib/founding";
@@ -95,6 +95,9 @@ export default async function ParduotiPage({ searchParams }: PageProps<"/parduot
           <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             Nepavyko atidaryti išmokų nustatymo. Pabandykite dar kartą po kelių minučių — jei
             nepavyks, parašykite mums ir sutvarkysime.
+            {typeof sp.kodas === "string" && (
+              <span className="mt-1 block text-xs text-red-600/80">Klaidos kodas: {sp.kodas}</span>
+            )}
           </div>
         )}
 
@@ -116,11 +119,7 @@ export default async function ParduotiPage({ searchParams }: PageProps<"/parduot
                 sąskaitą, tapatybę).
               </p>
             </div>
-            <form action={connectStripe}>
-              <button className="w-full rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark sm:w-auto">
-                {payout === "pending" ? "Tęsti" : "Prijungti išmokas"}
-              </button>
-            </form>
+            <ConnectStripeButton label={payout === "pending" ? "Tęsti" : "Prijungti išmokas"} />
           </div>
         )}
 
