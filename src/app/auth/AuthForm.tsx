@@ -6,7 +6,15 @@ import { authenticate, type AuthState } from "./actions";
 
 export type AuthMode = "login" | "register";
 
-export default function AuthForm({ initialMode = "login" }: { initialMode?: AuthMode }) {
+export default function AuthForm({
+  initialMode = "login",
+  initialNotice,
+  initialError,
+}: {
+  initialMode?: AuthMode;
+  initialNotice?: string;
+  initialError?: string;
+}) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [state, formAction, pending] = useActionState<AuthState, FormData>(
     authenticate,
@@ -66,14 +74,14 @@ export default function AuthForm({ initialMode = "login" }: { initialMode?: Auth
           />
         </label>
 
-        {state?.error && (
+        {(state?.error ?? (!state && initialError)) && (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-            {state.error}
+            {state?.error ?? initialError}
           </p>
         )}
-        {state?.notice && (
+        {(state?.notice ?? (!state && initialNotice)) && (
           <p className="rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand-dark">
-            {state.notice}
+            {state?.notice ?? initialNotice}
           </p>
         )}
 

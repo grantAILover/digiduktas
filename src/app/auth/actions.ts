@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requestOrigin } from "@/lib/site";
 
 export type AuthState = { error?: string; notice?: string } | null;
 
@@ -35,7 +36,8 @@ export async function authenticate(
       password,
       options: {
         data: { display_name: displayName || email.split("@")[0] },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`,
+        // Adresas iš realios užklausos — kad patvirtinimas grąžintų į tą pačią svetainę
+        emailRedirectTo: `${await requestOrigin()}/auth/confirm`,
       },
     });
     if (error) return { error: translate(error.message) };

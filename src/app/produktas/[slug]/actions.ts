@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getStripe, getPayoutStatus } from "@/lib/stripe";
 import { MIN_PRICE_CENTS } from "@/lib/pricing";
 import { sellerFeeCents } from "@/lib/founding-server";
+import { requestOrigin } from "@/lib/site";
 
 // Sukuria Stripe Checkout sesiją (destination charge + komisija) ir nukreipia
 export async function createCheckout(formData: FormData) {
@@ -43,7 +44,7 @@ export async function createCheckout(formData: FormData) {
   // Founding pardavėjams iki termino — 0 %, kitiems — įprasta komisija
   const fee = await sellerFeeCents(product.seller_id, product.price_cents);
 
-  const site = process.env.NEXT_PUBLIC_SITE_URL;
+  const site = await requestOrigin();
   const meta = {
     product_id: product.id,
     buyer_id: user.id,

@@ -6,6 +6,7 @@ import ProductCard, { VerifiedBadge, eur, type ProductCardData } from "@/compone
 import ProductGallery from "@/components/ProductGallery";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { KIND_LABEL, isViewable, type FileKind } from "@/lib/files";
+import { getPayoutStatus } from "@/lib/stripe";
 import ReportButton from "./ReportButton";
 import ReviewForm from "./ReviewForm";
 import { createCheckout } from "./actions";
@@ -97,6 +98,18 @@ export default async function ProduktasPage({
     hasPurchased = (count ?? 0) > 0;
   }
   const canReview = !!user && !isOwner && hasPurchased && !hasReviewed;
+
+  // Ar pardavėjas jau gali priimti mokėjimus (prijungęs išmokas Stripe'e).
+  // Jei ne — nerodom „Pirkti", kad pirkėjas negautų klaidos.
+  let sellerReady = true;
+  if (!isOwner) {
+    const { data: sellerProfile } = await createAdminClient()
+      .from("profiles")
+      .select("stripe_account_id")
+      .eq("id", p.seller_id)
+      .maybeSingle();
+    sellerReady = (await getPayoutStatus(sellerProfile?.stripe_account_id)) === "active";
+  }
 
   // Failų tipai — pirkėjas turi žinoti PRIEŠ pirkdamas (tik tipai, keliai lieka serveryje)
   const { data: fileKindsRaw } = await createAdminClient()
@@ -191,6 +204,10 @@ export default async function ProduktasPage({
           {isOwner ? (
             <p className="mt-4 rounded-lg border border-line bg-canvas px-4 py-3 text-sm text-muted">
               Tai jūsų produktas.
+            </p>
+          ) : !sellerReady ? (
+            <p className="mt-4 rounded-lg border border-line bg-canvas px-4 py-3 text-sm text-muted">
+              Pardavėjas dar ruošia mokėjimų priėmimą — netrukus šį produktą bus galima įsigyti.
             </p>
           ) : (
             <form action={createCheckout}>

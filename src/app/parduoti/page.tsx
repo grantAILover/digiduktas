@@ -21,7 +21,8 @@ function eur(cents: number) {
   return (cents / 100).toFixed(2) + " €";
 }
 
-export default async function ParduotiPage() {
+export default async function ParduotiPage({ searchParams }: PageProps<"/parduoti">) {
+  const sp = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -87,6 +88,13 @@ export default async function ParduotiPage() {
           <div className="mt-6 rounded-xl border border-brand/30 bg-brand-soft px-4 py-3 text-sm text-brand-dark">
             <strong>Esate tarp pirmųjų {FOUNDING_LIMIT} pardavėjų</strong> — 0 % komisijos iki{" "}
             {FOUNDING_UNTIL_LABEL} Visa kaina keliauja jums.
+          </div>
+        )}
+
+        {sp.stripe === "klaida" && (
+          <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Nepavyko atidaryti išmokų nustatymo. Pabandykite dar kartą po kelių minučių — jei
+            nepavyks, parašykite mums ir sutvarkysime.
           </div>
         )}
 
