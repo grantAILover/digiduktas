@@ -141,7 +141,7 @@ export default function TaisyklesPage() {
             <>Nuo kiekvieno pardavimo operatorius taiko {OPERATOR.commissionPct}% komisiją; likusi suma pervedama pardavėjui.</>,
             <>
               Pirmiesiems {FOUNDING_LIMIT} pardavėjų (vieta rezervuojama užsiregistravus kaip pardavėjui arba
-              patvirtinus pardavėjo paraišką) komisija netaikoma iki {FOUNDING_UNTIL_LABEL}.
+              patvirtinus pardavėjo paraišką) komisija netaikoma iki {FOUNDING_UNTIL_LABEL}
             </>,
             <>
               Pirmiesiems {BONUS_SELLERS} iš jų, pardavusiems savo produktus {BONUS_SALES} skirtingiems

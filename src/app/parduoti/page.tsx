@@ -86,7 +86,7 @@ export default async function ParduotiPage() {
         {founding && foundingActive() && (
           <div className="mt-6 rounded-xl border border-brand/30 bg-brand-soft px-4 py-3 text-sm text-brand-dark">
             <strong>Esate tarp pirmųjų {FOUNDING_LIMIT} pardavėjų</strong> — 0 % komisijos iki{" "}
-            {FOUNDING_UNTIL_LABEL}. Visa kaina keliauja jums.
+            {FOUNDING_UNTIL_LABEL} Visa kaina keliauja jums.
           </div>
         )}
 

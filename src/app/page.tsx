@@ -130,7 +130,7 @@ export default async function Home() {
 
           {offerOpen ? (
             <div className="mx-auto mt-6 w-full max-w-md rounded-xl border border-brand/30 bg-surface px-4 py-3 text-left text-sm">
-              <p className="font-semibold text-brand">{FOUNDING_OFFER}.</p>
+              <p className="font-semibold text-brand">{FOUNDING_OFFER}</p>
               {remaining !== null && taken !== null && (
                 <>
                   <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-brand-soft">
@@ -306,7 +306,7 @@ export default async function Home() {
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-muted">
             Jie gali padėti ir kitiems. Pirmiems {FOUNDING_LIMIT} pardavėjų — be jokios komisijos iki{" "}
-            {FOUNDING_UNTIL_LABEL}.
+            {FOUNDING_UNTIL_LABEL}
           </p>
           <a
             href="#pardavejas"

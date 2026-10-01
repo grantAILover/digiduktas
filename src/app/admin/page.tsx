@@ -200,7 +200,7 @@ export default async function AdminPage() {
           </span>
         </h2>
         <p className="mt-1 text-xs text-muted">
-          0 % komisijos iki {FOUNDING_UNTIL_LABEL}. Bonusą ({BONUS_EUR} €) gauna pirmieji {BONUS_SELLERS},
+          0 % komisijos iki {FOUNDING_UNTIL_LABEL} Bonusą ({BONUS_EUR} €) gauna pirmieji {BONUS_SELLERS},
           pardavę {BONUS_SALES} skirtingiems pirkėjams — pervesk rankiniu būdu.
         </p>
         {slots.length === 0 ? (

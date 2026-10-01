@@ -61,7 +61,7 @@ export default async function AciuPage({ searchParams }: PageProps<"/aciu">) {
         {isSeller && slotNumber !== null && (
           <p className="mx-auto mt-4 w-fit rounded-lg border border-brand/30 bg-brand-soft px-4 py-2.5 text-sm text-brand-dark">
             Tau rezervuota vieta <strong>Nr. {slotNumber}</strong> iš {FOUNDING_LIMIT}: 0 % komisijos iki{" "}
-            {FOUNDING_UNTIL_LABEL}.
+            {FOUNDING_UNTIL_LABEL}
           </p>
         )}
       </div>

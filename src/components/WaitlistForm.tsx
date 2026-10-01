@@ -64,7 +64,7 @@ export default function WaitlistForm({ foundingRemaining = null }: { foundingRem
             <div className="rounded-lg bg-brand-soft px-3 py-2.5 text-sm">
               <p className="font-semibold text-brand-dark">
                 {FOUNDING_OFFER}
-                {foundingRemaining ? ` — liko ${foundingRemaining} iš ${FOUNDING_LIMIT} vietų` : ""}.
+                {foundingRemaining ? ` — liko ${foundingRemaining} iš ${FOUNDING_LIMIT} vietų.` : ""}
               </p>
               <p className="mt-1 text-xs text-brand-dark/80">{BONUS_OFFER}</p>
             </div>
