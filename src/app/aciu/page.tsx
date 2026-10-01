@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import ShareLinks from "./ShareLinks";
+import { FOUNDING_LIMIT, FOUNDING_UNTIL_LABEL } from "@/lib/founding";
 
 export const metadata = { title: "Ačiū!", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -13,19 +14,36 @@ export default async function AciuPage({ searchParams }: PageProps<"/aciu">) {
   const isSeller = sp.r === "seller";
 
   // Kiek žmonių užsiregistravo per šio žmogaus nuorodą (motyvacija dalintis)
+  // ir ar pardavėjui rezervuota viena iš pirmųjų 20 vietų (0 % komisijos)
   let invited = 0;
+  let slotNumber: number | null = null;
   if (code) {
-    const { count } = await createAdminClient()
-      .from("waitlist")
-      .select("id", { count: "exact", head: true })
-      .eq("referred_by", code);
+    const db = createAdminClient();
+    const [{ count }, { data: me }] = await Promise.all([
+      db.from("waitlist").select("id", { count: "exact", head: true }).eq("referred_by", code),
+      db.from("waitlist").select("email").eq("ref_code", code).maybeSingle(),
+    ]);
     invited = count ?? 0;
+    if (isSeller && me?.email) {
+      const { data: slot } = await db
+        .from("founding_slots")
+        .select("id")
+        .eq("email", me.email.toLowerCase())
+        .maybeSingle();
+      if (slot) {
+        const { count: before } = await db
+          .from("founding_slots")
+          .select("id", { count: "exact", head: true })
+          .lte("id", slot.id);
+        slotNumber = before ?? null;
+      }
+    }
   }
 
   const site = process.env.NEXT_PUBLIC_SITE_URL || "https://digiduktas.lt";
   const shareUrl = code ? `${site}/?ref=${code}` : site;
   const shareText = isSeller
-    ? "Radau vietą, kur mokytojai, korepetitoriai ir abiturientai gali parduoti savo konspektus ir mokymosi medžiagą. Pirmą savaitę — be komisijos:"
+    ? `Radau vietą, kur mokytojai, korepetitoriai ir abiturientai gali parduoti savo konspektus ir mokymosi medžiagą. Pirmiems ${FOUNDING_LIMIT} pardavėjų — be komisijos:`
     : "Netrukus atsidaro vieta, kur rasi konspektų ir medžiagos egzaminams nuo tų, kurie jau išlaikė:";
 
   return (
@@ -37,9 +55,15 @@ export default async function AciuPage({ searchParams }: PageProps<"/aciu">) {
         <h1 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">Ačiū! Tu sąraše.</h1>
         <p className="mt-3 text-muted">
           {isSeller
-            ? "Netrukus susisieksime asmeniškai ir padėsime įkelti pirmą medžiagą. Pirmą savaitę — 0 % komisijos."
+            ? "Netrukus susisieksime asmeniškai ir padėsime įkelti pirmą medžiagą."
             : "Pranešime, kai atsiras pirmieji konspektai ir sprendimai."}
         </p>
+        {isSeller && slotNumber !== null && (
+          <p className="mx-auto mt-4 w-fit rounded-lg border border-brand/30 bg-brand-soft px-4 py-2.5 text-sm text-brand-dark">
+            Tau rezervuota vieta <strong>Nr. {slotNumber}</strong> iš {FOUNDING_LIMIT}: 0 % komisijos iki{" "}
+            {FOUNDING_UNTIL_LABEL}.
+          </p>
+        )}
       </div>
 
       <section className="mt-10 rounded-2xl border border-line bg-surface p-6">

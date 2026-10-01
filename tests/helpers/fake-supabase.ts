@@ -93,6 +93,10 @@ export function createFakeSupabase(initial: Record<string, Row[]>) {
         filters.push((r) => vals.includes(r[col]));
         return builder;
       },
+      lte(col: string, val: number | string) {
+        filters.push((r) => (r[col] as number | string) <= val);
+        return builder;
+      },
       order(col: string, o?: { ascending?: boolean }) {
         order = { col, asc: o?.ascending !== false };
         return builder;
@@ -143,6 +147,26 @@ export function createFakeSupabase(initial: Record<string, Row[]>) {
     },
   };
 
+  // DB funkcijos (ta pati logika kaip supabase/migrations/005)
+  let slotSeq = 0;
+  async function rpc(name: string, args: Record<string, unknown>) {
+    if (name !== "claim_founding_slot") return { data: null, error: { code: "42883", message: "no fn" } };
+    const slots = (tables.founding_slots ??= []);
+    const email = String(args.p_email).toLowerCase();
+    const userId = (args.p_user_id as string | null) ?? null;
+    const limit = Number(args.p_limit ?? 20);
+    const numberOf = (s: Row) => slots.filter((x) => (x.id as number) <= (s.id as number)).length;
+    let slot = slots.find((s) => s.email === email) ?? (userId ? slots.find((s) => s.user_id === userId) : undefined);
+    if (slot) {
+      if (userId && !slot.user_id && !slots.some((s) => s.user_id === userId)) slot.user_id = userId;
+      return { data: numberOf(slot), error: null };
+    }
+    if (slots.length >= limit) return { data: null, error: null };
+    slot = { id: ++slotSeq + 1000, email, user_id: userId, created_at: new Date().toISOString() };
+    slots.push(slot);
+    return { data: slots.length, error: null };
+  }
+
   const auth = {
     async getUser() {
       return {
@@ -153,7 +177,7 @@ export function createFakeSupabase(initial: Record<string, Row[]>) {
   };
 
   return {
-    client: { from, storage, auth },
+    client: { from, storage, auth, rpc },
     tables,
     signCalls,
     /** Kas „prisijungęs" (null — niekas). */

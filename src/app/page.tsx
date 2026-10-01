@@ -1,5 +1,19 @@
 import WaitlistForm from "@/components/WaitlistForm";
 import { CoverPlaceholder } from "@/components/ProductCard";
+import {
+  BONUS_EUR,
+  BONUS_OFFER,
+  BONUS_SALES,
+  BONUS_SELLERS,
+  FOUNDING_LIMIT,
+  FOUNDING_OFFER,
+  FOUNDING_UNTIL_LABEL,
+  foundingRemaining,
+} from "@/lib/founding";
+import { foundingTaken } from "@/lib/founding-server";
+
+// Skaitiklis „Liko X iš 20" — visada aktualus skaičius iš DB
+export const dynamic = "force-dynamic";
 
 // Pagrindinė žinutė — mokymosi medžiaga egzaminams ir pamokoms. Kitos kategorijos — „netrukus".
 const comingSoon = ["Šablonai", "Grafika ir dizainas", "Presetai ir filtrai", "Vaizdo kursai"];
@@ -52,7 +66,11 @@ const steps = [
 const faq = [
   {
     q: "Kiek kainuoja parduoti?",
-    a: "Registracija nemokama. Pirmą savaitę — 0 % komisijos, vėliau 10 % nuo kiekvieno pardavimo. Jokių mėnesinių mokesčių.",
+    a: `Registracija nemokama. Pirmiems ${FOUNDING_LIMIT} pardavėjų — 0 % komisijos iki ${FOUNDING_UNTIL_LABEL}, kitiems — 10 % nuo kiekvieno pardavimo. Jokių mėnesinių mokesčių.`,
+  },
+  {
+    q: `Kaip gauti ${BONUS_EUR} € bonusą?`,
+    a: `Pirmieji ${BONUS_SELLERS} pardavėjų, pardavę savo medžiagą ${BONUS_SALES} skirtingiems pirkėjams, gauna ${BONUS_EUR} € bonusą — pervedame jį į tavo banko sąskaitą.`,
   },
   {
     q: "Kas gali parduoti?",
@@ -76,7 +94,11 @@ const faq = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const taken = await foundingTaken();
+  const remaining = taken === null ? null : foundingRemaining(taken);
+  const offerOpen = remaining === null || remaining > 0;
+
   return (
     <div>
       {/* Hero */}
@@ -106,10 +128,29 @@ export default function Home() {
             </a>
           </div>
 
-          <p className="mx-auto mt-6 w-fit rounded-lg border border-brand/30 bg-surface px-4 py-2 text-sm">
-            <span className="font-semibold text-brand">Pirmą savaitę — 0 % komisijos.</span>{" "}
-            <span className="text-muted">Visa kaina keliauja tau.</span>
-          </p>
+          {offerOpen ? (
+            <div className="mx-auto mt-6 w-full max-w-md rounded-xl border border-brand/30 bg-surface px-4 py-3 text-left text-sm">
+              <p className="font-semibold text-brand">{FOUNDING_OFFER}.</p>
+              {remaining !== null && taken !== null && (
+                <>
+                  <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-brand-soft">
+                    <div
+                      className="h-full rounded-full bg-brand"
+                      style={{ width: `${Math.max(4, (taken / FOUNDING_LIMIT) * 100)}%` }}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-xs text-muted">
+                    Liko <strong className="text-ink">{remaining}</strong> iš {FOUNDING_LIMIT} vietų
+                  </p>
+                </>
+              )}
+              <p className="mt-2 text-xs text-muted">{BONUS_OFFER}</p>
+            </div>
+          ) : (
+            <p className="mx-auto mt-6 w-fit rounded-lg border border-line bg-surface px-4 py-2 text-sm text-muted">
+              Visos {FOUNDING_LIMIT} vietų su 0 % komisija jau užimtos. Komisija — 10 % nuo pardavimo.
+            </p>
+          )}
 
           <div className="mt-5">
             <a href="/naujienos" className="text-sm text-muted transition-colors hover:text-brand">
@@ -130,13 +171,13 @@ export default function Home() {
             <div className="mt-5 flex flex-col gap-3 text-sm">
               <div className="flex items-center justify-between rounded-lg bg-brand-soft px-4 py-3">
                 <span>
-                  Pirmą savaitę <span className="text-muted">(0 % komisijos)</span>
+                  Pirmieji {FOUNDING_LIMIT} pardavėjų <span className="text-muted">(0 %)</span>
                 </span>
                 <span className="font-bold text-brand">gauni 5,00 €</span>
               </div>
               <div className="flex items-center justify-between rounded-lg border border-line px-4 py-3">
                 <span>
-                  Vėliau <span className="text-muted">(10 % komisija)</span>
+                  Įprastai <span className="text-muted">(10 % komisija)</span>
                 </span>
                 <span className="font-bold">gauni 4,50 €</span>
               </div>
@@ -223,7 +264,7 @@ export default function Home() {
           Palik el. paštą — pardavėjams padėsime įkelti pirmą medžiagą, pirkėjams pranešime,
           kai atsiras pirmieji konspektai.
         </p>
-        <WaitlistForm />
+        <WaitlistForm foundingRemaining={remaining} />
         <p className="mt-4 text-xs text-muted">Be spamo. Tik svarbiausios žinios apie startą.</p>
       </section>
 
@@ -264,7 +305,8 @@ export default function Home() {
             Turi konspektų, kurie padėjo tau ar tavo mokiniams?
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-muted">
-            Jie gali padėti ir kitiems. Pirmą savaitę — be jokios komisijos.
+            Jie gali padėti ir kitiems. Pirmiems {FOUNDING_LIMIT} pardavėjų — be jokios komisijos iki{" "}
+            {FOUNDING_UNTIL_LABEL}.
           </p>
           <a
             href="#pardavejas"

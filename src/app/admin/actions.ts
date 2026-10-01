@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { claimFoundingSlot } from "@/lib/founding-server";
 import { revalidatePath } from "next/cache";
 
 // Grąžina Supabase klientą TIK jei prisijungęs naudotojas yra adminas.
@@ -29,6 +31,12 @@ export async function approveSeller(formData: FormData) {
     .from("seller_applications")
     .update({ status: "approved", reviewed_at: new Date().toISOString() })
     .eq("id", appId);
+
+  // Founding vieta: susiejam rezervuotą (pagal el. paštą) arba skiriam naują, jei dar liko
+  const admin = createAdminClient();
+  const { data } = await admin.auth.admin.getUserById(userId);
+  if (data.user?.email) await claimFoundingSlot(data.user.email, userId, admin);
+
   revalidatePath("/admin");
 }
 

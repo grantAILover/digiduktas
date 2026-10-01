@@ -6,6 +6,8 @@ import SellerApplicationForm from "./SellerApplicationForm";
 import { connectStripe } from "./stripe-actions";
 import DeleteProductButton from "./DeleteProductButton";
 import { CoverPlaceholder } from "@/components/ProductCard";
+import { isFoundingSeller } from "@/lib/founding-server";
+import { FOUNDING_LIMIT, FOUNDING_UNTIL_LABEL, foundingActive } from "@/lib/founding";
 
 const statusLabels: Record<string, { text: string; cls: string }> = {
   draft: { text: "Juodraštis", cls: "bg-line text-ink" },
@@ -51,13 +53,14 @@ export default async function ParduotiPage() {
 
   // 2. Patvirtintas pardavėjas → dashboardas
   if (profile?.is_seller) {
-    const [{ data: products }, payout] = await Promise.all([
+    const [{ data: products }, payout, founding] = await Promise.all([
       supabase
         .from("products")
         .select("id, title, slug, price_cents, category, cover_image_url, status, created_at")
         .eq("seller_id", user.id)
         .order("created_at", { ascending: false }),
       getPayoutStatus(profile.stripe_account_id),
+      isFoundingSeller(user.id),
     ]);
 
     return (
@@ -79,6 +82,13 @@ export default async function ParduotiPage() {
             </Link>
           </div>
         </div>
+
+        {founding && foundingActive() && (
+          <div className="mt-6 rounded-xl border border-brand/30 bg-brand-soft px-4 py-3 text-sm text-brand-dark">
+            <strong>Esate tarp pirmųjų {FOUNDING_LIMIT} pardavėjų</strong> — 0 % komisijos iki{" "}
+            {FOUNDING_UNTIL_LABEL}. Visa kaina keliauja jums.
+          </div>
+        )}
 
         {/* Išmokų (Stripe) statusas */}
         {payout === "active" ? (

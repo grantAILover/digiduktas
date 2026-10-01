@@ -1,4 +1,5 @@
 import { OPERATOR } from "@/lib/legal";
+import { BONUS_EUR, BONUS_SALES, BONUS_SELLERS, FOUNDING_LIMIT, FOUNDING_UNTIL_LABEL } from "@/lib/founding";
 import { LegalPage, Section, Bullets } from "@/components/legal";
 
 export const metadata = {
@@ -138,6 +139,15 @@ export default function TaisyklesPage() {
             "Kainas nustato pardavėjas; jos nurodomos eurais.",
             "Apmokėjimus apdoroja Stripe. Operatorius nesaugo kortelių duomenų.",
             <>Nuo kiekvieno pardavimo operatorius taiko {OPERATOR.commissionPct}% komisiją; likusi suma pervedama pardavėjui.</>,
+            <>
+              Pirmiesiems {FOUNDING_LIMIT} pardavėjų (vieta rezervuojama užsiregistravus kaip pardavėjui arba
+              patvirtinus pardavėjo paraišką) komisija netaikoma iki {FOUNDING_UNTIL_LABEL}.
+            </>,
+            <>
+              Pirmiesiems {BONUS_SELLERS} iš jų, pardavusiems savo produktus {BONUS_SALES} skirtingiems
+              pirkėjams, operatorius vieną kartą išmoka {BONUS_EUR} € bonusą. Nustačius piktnaudžiavimą (pvz.
+              pirkimus iš savo ar susijusių paskyrų) bonusas neišmokamas.
+            </>,
             "Išmokos pardavėjui vykdomos per Stripe į jo nurodytą sąskaitą.",
           ]}
         />

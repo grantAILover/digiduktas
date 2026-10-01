@@ -43,7 +43,10 @@ export async function fulfillCheckoutSession(
 
   // Kiek pirkėjas REALIAI sumokėjo (kaina galėjo pasikeisti tarp pirkimo ir apdorojimo)
   const price = session.amount_total ?? product.price_cents;
-  const fee = platformFee(price);
+  // Realiai taikyta komisija (founding pardavėjams — 0); senesniems mokėjimams — įprasta
+  const metaFee = Number(session.metadata?.fee_cents);
+  const fee =
+    Number.isInteger(metaFee) && metaFee >= 0 && metaFee <= price ? metaFee : platformFee(price);
 
   const { data: order, error } = await db
     .from("orders")

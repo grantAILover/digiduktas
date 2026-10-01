@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sourceOf, sellerTypeLabel } from "@/lib/sources";
+import { BONUS_EUR, BONUS_SALES, BONUS_SELLERS, FOUNDING_LIMIT, FOUNDING_UNTIL_LABEL } from "@/lib/founding";
 import { categoryName } from "@/lib/categories";
 import { eur } from "@/components/ProductCard";
 import {
@@ -84,6 +85,33 @@ export default async function AdminPage() {
     if (w.referred_by) invitedBy.set(w.referred_by, (invitedBy.get(w.referred_by) ?? 0) + 1);
   }
 
+  // Pirmųjų 20 pardavėjų vietos + bonuso sąlyga (pardavimai skirtingiems pirkėjams)
+  const adminDb = createAdminClient();
+  const [{ data: slotsRaw }, { data: paidRaw }] = await Promise.all([
+    adminDb
+      .from("founding_slots")
+      .select("id, email, user_id, created_at, profiles:user_id(display_name)")
+      .order("id", { ascending: true }),
+    adminDb.from("orders").select("buyer_id, products(seller_id)").eq("status", "paid"),
+  ]);
+  const buyersBySeller = new Map<string, Set<string>>();
+  for (const o of paidRaw ?? []) {
+    const prod = Array.isArray(o.products) ? o.products[0] : o.products;
+    if (!prod?.seller_id) continue;
+    if (!buyersBySeller.has(prod.seller_id)) buyersBySeller.set(prod.seller_id, new Set());
+    buyersBySeller.get(prod.seller_id)!.add(o.buyer_id);
+  }
+  const slots = (slotsRaw ?? []).map((s, i) => {
+    const buyers = s.user_id ? (buyersBySeller.get(s.user_id)?.size ?? 0) : 0;
+    return {
+      ...s,
+      number: i + 1,
+      name: sellerName(s.profiles),
+      buyers,
+      bonusEarned: i < BONUS_SELLERS && buyers >= BONUS_SALES,
+    };
+  });
+
   const btn =
     "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors";
 
@@ -151,6 +179,60 @@ export default async function AdminPage() {
                     </td>
                     <td className="whitespace-nowrap px-3 py-2 text-xs text-muted">
                       {new Date(w.created_at).toLocaleDateString("lt-LT")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* 0b. Pirmųjų 20 pardavėjų vietos */}
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold">
+          Pirmųjų {FOUNDING_LIMIT} pardavėjų vietos{" "}
+          <span className="text-muted">
+            ({slots.length} / {FOUNDING_LIMIT})
+          </span>
+        </h2>
+        <p className="mt-1 text-xs text-muted">
+          0 % komisijos iki {FOUNDING_UNTIL_LABEL}. Bonusą ({BONUS_EUR} €) gauna pirmieji {BONUS_SELLERS},
+          pardavę {BONUS_SALES} skirtingiems pirkėjams — pervesk rankiniu būdu.
+        </p>
+        {slots.length === 0 ? (
+          <p className="mt-2 text-sm text-muted">Dar nėra užimtų vietų.</p>
+        ) : (
+          <div className="mt-3 overflow-x-auto rounded-xl border border-line">
+            <table className="w-full min-w-[560px] text-left text-sm">
+              <thead className="bg-brand-soft text-xs text-brand-dark">
+                <tr>
+                  <th className="px-3 py-2 font-semibold">Nr.</th>
+                  <th className="px-3 py-2 font-semibold">El. paštas</th>
+                  <th className="px-3 py-2 font-semibold">Paskyra</th>
+                  <th className="px-3 py-2 font-semibold">Pirkėjų</th>
+                  <th className="px-3 py-2 font-semibold">Bonusas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {slots.map((s) => (
+                  <tr key={s.id} className="border-t border-line bg-surface">
+                    <td className="px-3 py-2 text-muted">{s.number}</td>
+                    <td className="px-3 py-2 font-medium">{s.email}</td>
+                    <td className="px-3 py-2 text-muted">{s.user_id ? s.name : "dar nėra (tik sąraše)"}</td>
+                    <td className="px-3 py-2 text-muted">{s.buyers}</td>
+                    <td className="px-3 py-2">
+                      {s.bonusEarned ? (
+                        <span className="rounded-md bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800">
+                          Užsitarnavo {BONUS_EUR} €
+                        </span>
+                      ) : s.number <= BONUS_SELLERS ? (
+                        <span className="text-xs text-muted">
+                          {s.buyers}/{BONUS_SALES}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}

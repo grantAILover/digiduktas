@@ -4,6 +4,7 @@ import { randomBytes } from "crypto";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SELLER_TYPES } from "@/lib/sources";
+import { claimFoundingSlot } from "@/lib/founding-server";
 
 export type WaitlistState = { error?: string } | null;
 
@@ -61,7 +62,10 @@ export async function joinWaitlist(
   for (let attempt = 0; attempt < 3; attempt++) {
     const code = newCode();
     const { error } = await db.from("waitlist").insert({ ...row, ref_code: code });
-    if (!error) thanks(code, role);
+    if (!error) {
+      if (role === "seller") await claimFoundingSlot(email, null, db);
+      thanks(code, role);
+    }
     if (error.code !== "23505") break;
 
     // Unikalumo klaida: arba el. paštas jau sąraše, arba (labai retai) kodas sutapo
@@ -81,6 +85,7 @@ export async function joinWaitlist(
       const existingCode = existing.ref_code ?? code;
       if (!existing.ref_code) patch.ref_code = existingCode;
       if (Object.keys(patch).length) await db.from("waitlist").update(patch).eq("id", existing.id);
+      if (becameSeller) await claimFoundingSlot(email, null, db);
       thanks(existingCode, becameSeller ? "seller" : existing.role);
     }
     // kitaip — kodo sutapimas, bandom su nauju

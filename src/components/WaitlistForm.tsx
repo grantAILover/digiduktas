@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { joinWaitlist, type WaitlistState } from "@/app/actions";
 import { readAttribution, type Attribution } from "@/lib/attribution";
 import { SELLER_TYPES } from "@/lib/sources";
+import { BONUS_OFFER, FOUNDING_LIMIT, FOUNDING_OFFER } from "@/lib/founding";
 
 const roles = [
   { value: "seller", label: "Noriu parduoti" },
@@ -15,7 +16,7 @@ const chip = (active: boolean) =>
     active ? "border-brand bg-brand text-surface" : "border-line bg-surface text-ink hover:border-brand"
   }`;
 
-export default function WaitlistForm() {
+export default function WaitlistForm({ foundingRemaining = null }: { foundingRemaining?: number | null }) {
   const [state, formAction, pending] = useActionState<WaitlistState, FormData>(joinWaitlist, null);
   const [role, setRole] = useState<string>("");
   const [sellerType, setSellerType] = useState<string>("");
@@ -59,6 +60,15 @@ export default function WaitlistForm() {
 
       {role === "seller" && (
         <div className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-4">
+          {foundingRemaining !== 0 && (
+            <div className="rounded-lg bg-brand-soft px-3 py-2.5 text-sm">
+              <p className="font-semibold text-brand-dark">
+                {FOUNDING_OFFER}
+                {foundingRemaining ? ` — liko ${foundingRemaining} iš ${FOUNDING_LIMIT} vietų` : ""}.
+              </p>
+              <p className="mt-1 text-xs text-brand-dark/80">{BONUS_OFFER}</p>
+            </div>
+          )}
           <div>
             <p className="text-sm font-medium">Kas tu esi?</p>
             <div className="mt-2 flex flex-wrap gap-2">

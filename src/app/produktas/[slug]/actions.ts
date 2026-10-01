@@ -3,8 +3,9 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getStripe, getPayoutStatus, platformFee } from "@/lib/stripe";
+import { getStripe, getPayoutStatus } from "@/lib/stripe";
 import { MIN_PRICE_CENTS } from "@/lib/pricing";
+import { sellerFeeCents } from "@/lib/founding-server";
 
 // Sukuria Stripe Checkout sesiją (destination charge + komisija) ir nukreipia
 export async function createCheckout(formData: FormData) {
@@ -39,12 +40,17 @@ export async function createCheckout(formData: FormData) {
     redirect(`/produktas/${product.slug}?err=seller`);
   }
 
+  // Founding pardavėjams iki termino — 0 %, kitiems — įprasta komisija
+  const fee = await sellerFeeCents(product.seller_id, product.price_cents);
+
   const site = process.env.NEXT_PUBLIC_SITE_URL;
   const meta = {
     product_id: product.id,
     buyer_id: user.id,
     // Sutikimo įrodymas (Stripe saugo metaduomenis prie mokėjimo)
     withdrawal_waiver_at: new Date().toISOString(),
+    // Realiai taikoma komisija — užsakyme įrašoma būtent ji
+    fee_cents: String(fee),
   };
   const session = await getStripe().checkout.sessions.create({
     mode: "payment",
@@ -59,7 +65,8 @@ export async function createCheckout(formData: FormData) {
       },
     ],
     payment_intent_data: {
-      application_fee_amount: platformFee(product.price_cents),
+      // 0 % komisija → laukas nenurodomas (visa suma keliauja pardavėjui)
+      ...(fee > 0 ? { application_fee_amount: fee } : {}),
       transfer_data: { destination: sellerAccount },
       metadata: meta,
     },
