@@ -7,12 +7,10 @@ import { logout } from "@/app/auth/actions";
 export default function UserMenu({
   displayName,
   avatarUrl,
-  userId,
   isAdmin,
 }: {
   displayName: string;
   avatarUrl: string | null;
-  userId: string;
   isAdmin: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -30,10 +28,13 @@ export default function UserMenu({
 
   const items = [
     { label: "Mano pirkiniai", href: "/pirkiniai" },
-    { label: "Mano produktai", href: "/parduoti" },
-    { label: "Mano profilis", href: `/kurejas/${userId}` },
     { label: "Nustatymai", href: "/nustatymai" },
-    ...(isAdmin ? [{ label: "Admin", href: "/admin" }] : []),
+    ...(isAdmin
+      ? [
+          { label: "Pluginų valdymas", href: "/parduoti" },
+          { label: "Admin", href: "/admin" },
+        ]
+      : []),
   ];
 
   return (
@@ -42,7 +43,7 @@ export default function UserMenu({
         onClick={() => setOpen((o) => !o)}
         aria-label="Profilio meniu"
         aria-expanded={open}
-        className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-brand text-sm font-bold text-surface ring-offset-2 transition-shadow hover:ring-2 hover:ring-brand/40"
+        className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-brand text-sm font-bold text-on-brand ring-offset-2 ring-offset-canvas transition-shadow hover:ring-2 hover:ring-brand/40"
       >
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

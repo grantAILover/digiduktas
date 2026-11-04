@@ -30,6 +30,7 @@ import { fulfillCheckoutSession, markRefunded } from "@/lib/fulfillment";
 import { getFileAccess } from "@/lib/access";
 import { POST as webhookPOST } from "@/app/api/stripe/webhook/route";
 import { createCheckout } from "@/app/produktas/[slug]/actions";
+import { getStripe } from "@/lib/stripe";
 
 beforeEach(() => {
   h.fake = createFakeSupabase(seed());
@@ -66,19 +67,38 @@ const orders = () => h.fake.tables.orders;
 const order = (id: string) => orders().find((o) => o.id === id)!;
 
 describe("Užsakymo vykdymas po apmokėjimo", () => {
-  it("sukuria užsakymą su komisija, atsisiuntimo prieigą ir laišką", async () => {
+  it("sukuria užsakymą (be komisijos — visa suma mums), atsisiuntimo prieigą ir laišką", async () => {
     expect(await fulfillCheckoutSession(session())).toBe("created");
     const o = orders().find((x) => x.stripe_session_id === "cs_test_new")!;
     expect(o).toMatchObject({
       buyer_id: IDS.stranger,
       status: "paid",
+      tier: "self",
       price_cents: 999,
-      platform_fee_cents: 100,
-      seller_amount_cents: 899,
+      platform_fee_cents: 0,
+      seller_amount_cents: 999,
       stripe_payment_intent: "pi_new",
     });
     expect(h.fake.tables.downloads).toHaveLength(1);
     expect(h.emails).toHaveLength(1);
+  });
+
+  it("užsakymas įsimena lygį „Su įdiegimu“, laiške — taip pat", async () => {
+    await fulfillCheckoutSession(
+      session({ amount_total: 1999, metadata: { product_id: IDS.productOpen, buyer_id: IDS.stranger, tier: "install" } }),
+    );
+    expect(orders().find((o) => o.stripe_session_id === "cs_test_new")).toMatchObject({
+      tier: "install",
+      price_cents: 1999,
+    });
+    expect(h.emails[0]).toMatchObject({ tier: "install" });
+  });
+
+  it("nežinomas lygis metaduomenyse → laikomas „Pats įsidiegiu“", async () => {
+    await fulfillCheckoutSession(
+      session({ metadata: { product_id: IDS.productOpen, buyer_id: IDS.stranger, tier: "vip" } }),
+    );
+    expect(orders().find((o) => o.stripe_session_id === "cs_test_new")!.tier).toBe("self");
   });
 
   it("antras kartas (webhook + grįžimo puslapis) — dvigubo užsakymo nėra", async () => {
@@ -103,7 +123,7 @@ describe("Užsakymo vykdymas po apmokėjimo", () => {
     await fulfillCheckoutSession(session({ amount_total: 500 }));
     expect(orders().find((o) => o.stripe_session_id === "cs_test_new")).toMatchObject({
       price_cents: 500,
-      platform_fee_cents: 50,
+      seller_amount_cents: 500,
     });
   });
 
@@ -152,22 +172,69 @@ describe("Grąžinimai ir ginčai", () => {
   });
 });
 
-describe("Pirkimas: sutikimas ir minimali kaina", () => {
-  function checkoutForm(consent: boolean) {
-    const fd = new FormData();
-    fd.set("productId", IDS.productOpen);
-    if (consent) fd.set("consent", "on");
-    return fd;
-  }
+describe("Pirkimas: lygis, sutikimai ir kaina (serveris)", () => {
+  type Created = Stripe.Checkout.SessionCreateParams;
+  let created: Created[] = [];
 
-  it("be sutikimo dėl atsisakymo teisės pirkti negalima (tikrinama serveryje)", async () => {
+  beforeEach(() => {
+    created = [];
+    // Tikro Stripe nekviečiam — tik pagaunam, ką siųstume
+    vi.spyOn(getStripe().checkout.sessions, "create").mockImplementation((async (params: Created) => {
+      created.push(params);
+      return { url: "https://checkout.stripe.test/s" };
+    }) as never);
     h.fake.loginAs(IDS.stranger);
-    await expect(createCheckout(checkoutForm(false))).rejects.toThrow("REDIRECT /produktas/e-knyga?err=consent");
+    h.fake.tables.products[0].install_price_cents = 1999;
   });
 
-  it("produktas pigesnis nei 3 € neparduodamas", async () => {
-    h.fake.loginAs(IDS.stranger);
+  function form(fields: Record<string, string>) {
+    const fd = new FormData();
+    fd.set("productId", IDS.productOpen);
+    for (const [k, v] of Object.entries({ tier: "self", claude: "on", consent: "on", ...fields })) {
+      if (v) fd.set(k, v);
+    }
+    return fd;
+  }
+  const buy = (fields: Record<string, string> = {}) => createCheckout(form(fields));
+
+  it("pinigai — tiesiai mums: nėra pervedimo pardavėjui ir komisijos", async () => {
+    await expect(buy()).rejects.toThrow("REDIRECT https://checkout.stripe.test/s");
+    const s = created[0];
+    expect(s.line_items?.[0].price_data?.unit_amount).toBe(999);
+    expect(s.payment_intent_data).not.toHaveProperty("transfer_data");
+    expect(s.payment_intent_data).not.toHaveProperty("application_fee_amount");
+    expect(s.metadata).toMatchObject({ tier: "self", product_id: IDS.productOpen, buyer_id: IDS.stranger });
+  });
+
+  it("„Su įdiegimu“ — kaina iš DB, įrašomas sutikimas dėl paslaugos", async () => {
+    await expect(buy({ tier: "install", service: "on" })).rejects.toThrow("REDIRECT https://checkout");
+    expect(created[0].line_items?.[0].price_data?.unit_amount).toBe(1999);
+    expect(created[0].metadata).toHaveProperty("service_consent_at");
+  });
+
+  it("„Su įdiegimu“ be sutikimo dėl paslaugos — negalima", async () => {
+    await expect(buy({ tier: "install" })).rejects.toThrow("REDIRECT /produktas/e-knyga?err=service");
+    expect(created).toHaveLength(0);
+  });
+
+  it("diegimas nesiūlomas (nėra kainos) arba suklastotas lygis — negalima", async () => {
+    h.fake.tables.products[0].install_price_cents = null;
+    await expect(buy({ tier: "install", service: "on" })).rejects.toThrow("err=tier");
+    await expect(buy({ tier: "nemokamai" })).rejects.toThrow("err=tier");
+    expect(created).toHaveLength(0);
+  });
+
+  it("be patvirtinimo apie Claude paskyrą — negalima", async () => {
+    await expect(buy({ claude: "" })).rejects.toThrow("REDIRECT /produktas/e-knyga?err=claude");
+  });
+
+  it("be sutikimo dėl atsisakymo teisės pirkti negalima", async () => {
+    await expect(buy({ consent: "" })).rejects.toThrow("REDIRECT /produktas/e-knyga?err=consent");
+  });
+
+  it("kaina mažesnė nei 3 € — neparduodama", async () => {
     h.fake.tables.products[0].price_cents = 200;
-    await expect(createCheckout(checkoutForm(true))).rejects.toThrow("REDIRECT /produktas/e-knyga?err=price");
+    await expect(buy()).rejects.toThrow("REDIRECT /produktas/e-knyga?err=price");
+    expect(created).toHaveLength(0);
   });
 });

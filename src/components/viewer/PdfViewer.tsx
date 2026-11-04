@@ -25,7 +25,7 @@ function readPage(fileId: string) {
 export default function PdfViewer({ fileId, canDownload }: { fileId: string; canDownload: boolean }) {
   const { source, error, refresh } = useSignedSource(fileId);
   if (error) {
-    return <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>;
+    return <p className="rounded-lg bg-danger-soft px-4 py-3 text-sm text-danger">{error}</p>;
   }
   if (!source) return <p className="p-6 text-center text-sm text-muted">Įkeliama…</p>;
   return (
@@ -131,7 +131,7 @@ export function PdfDocument({
     "rounded-lg border border-line px-3 py-1.5 text-sm transition-colors hover:bg-brand-soft disabled:opacity-40";
 
   if (loadError) {
-    return <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{loadError}</p>;
+    return <p className="rounded-lg bg-danger-soft px-4 py-3 text-sm text-danger">{loadError}</p>;
   }
 
   return (
@@ -192,7 +192,7 @@ export function PdfDocument({
           onLoadSuccess={onLoadSuccess}
           onLoadError={onLoadError}
           loading={<p className="p-6 text-center text-sm text-muted">Įkeliamas PDF…</p>}
-          error={<p className="p-6 text-center text-sm text-red-700">Nepavyko atidaryti PDF.</p>}
+          error={<p className="p-6 text-center text-sm text-danger">Nepavyko atidaryti PDF.</p>}
         >
           <Page
             pageNumber={page}

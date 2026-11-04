@@ -26,7 +26,7 @@ export default async function Header() {
     <header className="sticky top-0 z-40 border-b border-line bg-surface/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2 text-base font-bold tracking-tight sm:text-lg">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-surface">d</span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-on-brand">d</span>
           {/* Labai siauruose ekranuose (iki 359 px) — tik ikona, kad tilptų mygtukai */}
           <span className="hide-xs">
             digi<span className="text-brand">duktas</span>
@@ -35,12 +35,7 @@ export default async function Header() {
 
         <div className="flex items-center gap-1 sm:gap-2">
           {user ? (
-            <UserMenu
-              displayName={displayName}
-              avatarUrl={avatarUrl}
-              userId={user.id}
-              isAdmin={isAdmin}
-            />
+            <UserMenu displayName={displayName} avatarUrl={avatarUrl} isAdmin={isAdmin} />
           ) : (
             <>
               <Link
@@ -51,7 +46,7 @@ export default async function Header() {
               </Link>
               <Link
                 href="/auth?registracija=1"
-                className="whitespace-nowrap rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark sm:px-3.5"
+                className="whitespace-nowrap rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark sm:px-3.5"
               >
                 Registruotis
               </Link>

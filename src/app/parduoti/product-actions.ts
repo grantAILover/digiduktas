@@ -1,11 +1,10 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/require-admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { FileKind } from "@/lib/files";
-import { parsePriceEur, priceError } from "@/lib/pricing";
-import { isActiveCategory } from "@/lib/categories";
+import { parseOptionalPrice, parsePriceEur, priceError } from "@/lib/pricing";
 import {
   checkFileCount,
   effectiveAllowDownload,
@@ -22,12 +21,11 @@ export type UpdateProductInput = {
   title: string;
   description: string;
   priceEur: string;
-  category: string;
+  installPriceEur?: string; // „Su įdiegimu"; tuščia — lygis nesiūlomas
   coverImageUrl?: string | null;
   previewImages?: string[]; // jei nurodyta — pakeičia visą peržiūrų sąrašą
   files?: FileInput[]; // jei nurodyta — galutinis failų sąrašas (tvarka = skyrių tvarka)
   allowDownload: boolean;
-  rightsConfirmed?: boolean; // privaloma, kai pridedami nauji failai
 };
 
 type Planned = { existingId: string } | { row: NewFileRow };
@@ -35,11 +33,9 @@ type Planned = { existingId: string } | { row: NewFileRow };
 export async function updateProduct(
   input: UpdateProductInput,
 ): Promise<EditState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Prisijunkite iš naujo." };
+  const admin = await requireAdmin();
+  if (!admin) return { error: "Pluginus redaguoti gali tik administratorius." };
+  const { supabase, user } = admin;
 
   const title = input.title.trim();
   if (!title) return { error: "Įrašykite pavadinimą." };
@@ -47,12 +43,14 @@ export async function updateProduct(
   const priceCents = parsePriceEur(input.priceEur);
   const priceProblem = priceError(priceCents);
   if (priceProblem || priceCents === null) return { error: priceProblem ?? "Neteisinga kaina." };
+  const install = parseOptionalPrice(input.installPriceEur);
+  if (install.error) return { error: install.error };
 
   const patch: Record<string, unknown> = {
     title,
     description: input.description.trim() || null,
     price_cents: priceCents,
-    category: input.category || null,
+    install_price_cents: install.cents,
     updated_at: new Date().toISOString(),
   };
   if (input.coverImageUrl) patch.cover_image_url = input.coverImageUrl;
@@ -61,16 +59,11 @@ export async function updateProduct(
   // Savininko patikra (toliau failus keičiam vartotojo klientu — RLS irgi saugo)
   const { data: owned } = await supabase
     .from("products")
-    .select("id, category")
+    .select("id")
     .eq("id", input.id)
     .eq("seller_id", user.id)
     .maybeSingle();
-  if (!owned) return { error: "Produktas nerastas." };
-
-  // Galima pasirinkti aktyvią kategoriją arba palikti esamą (net jei ji nebeaktyvi)
-  if (!isActiveCategory(input.category) && input.category !== owned.category) {
-    return { error: "Pasirinkite kategoriją." };
-  }
+  if (!owned) return { error: "Pluginas nerastas." };
 
   const { data: currentRows } = await supabase
     .from("product_files")
@@ -85,16 +78,7 @@ export async function updateProduct(
     const countError = checkFileCount(input.files.length);
     if (countError) return { error: countError };
 
-    // Nauji failai → naujas patvirtinimas dėl teisių
-    if (input.files.some((f) => !isExisting(f))) {
-      if (input.rightsConfirmed !== true) {
-        return {
-          error:
-            "Patvirtinkite, kad naujų failų turinys yra jūsų sukurtas (arba turite teisę jį parduoti) ir kad jums yra 18 metų.",
-        };
-      }
-      patch.rights_confirmed_at = new Date().toISOString();
-    }
+    if (input.files.some((f) => !isExisting(f))) patch.rights_confirmed_at = new Date().toISOString();
 
     const plan: Planned[] = [];
     const seen = new Set<string>();
@@ -150,13 +134,11 @@ export async function updateProduct(
   redirect("/parduoti");
 }
 
-// Soft-delete: status='removed' (užsakymų istorija išlieka; produktas dingsta iš turgaus)
+// Soft-delete: status='removed' (užsakymų istorija išlieka; pluginas dingsta iš katalogo)
 export async function deleteProduct(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/auth");
+  const admin = await requireAdmin();
+  if (!admin) redirect("/");
+  const { supabase, user } = admin;
 
   const id = String(formData.get("productId") ?? "");
   await supabase

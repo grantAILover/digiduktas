@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/require-admin";
 
 export const metadata = { title: "Statistika" };
 export const dynamic = "force-dynamic";
@@ -16,20 +16,11 @@ const MONTHS_SHORT = [
 ];
 
 export default async function StatistikaPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/auth");
+  const me = await requireAdmin();
+  if (!me) redirect("/");
+  const { user } = me;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_seller")
-    .eq("id", user.id)
-    .single();
-  if (!profile?.is_seller) redirect("/parduoti");
-
-  // 1. Pardavėjo produktai
+  // 1. Pluginai
   const admin = createAdminClient();
   const { data: products } = await admin
     .from("products")
@@ -112,7 +103,7 @@ export default async function StatistikaPage() {
           href="/parduoti"
           className="shrink-0 rounded-lg border border-line px-4 py-2 text-sm font-medium transition-colors hover:bg-brand-soft"
         >
-          Mano produktai
+          Pluginų valdymas
         </Link>
       </div>
 
@@ -137,7 +128,7 @@ export default async function StatistikaPage() {
         <div className="mt-10 rounded-xl border border-dashed border-line bg-surface p-12 text-center">
           <p className="font-medium">Dar nėra pardavimų</p>
           <p className="mt-1 text-sm text-muted">
-            Kai kas nors nusipirks jūsų produktą, statistika atsiras čia.
+            Kai kas nors nusipirks pluginą, statistika atsiras čia.
           </p>
         </div>
       ) : (
@@ -170,7 +161,7 @@ export default async function StatistikaPage() {
 
           {/* Pagal produktą */}
           <section className="mt-8">
-            <h2 className="text-sm font-semibold text-muted">Pagal produktą</h2>
+            <h2 className="text-sm font-semibold text-muted">Pagal pluginą</h2>
             <div className="mt-3 overflow-hidden rounded-xl border border-line">
               <table className="w-full text-sm">
                 <thead className="bg-brand-soft text-left text-xs text-brand-dark">
@@ -192,7 +183,7 @@ export default async function StatistikaPage() {
                             {r.product.title}
                           </Link>
                         ) : (
-                          <span className="text-muted">Pašalintas produktas</span>
+                          <span className="text-muted">Pašalintas pluginas</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">{r.count}</td>

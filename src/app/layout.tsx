@@ -17,24 +17,24 @@ const geistMono = Geist_Mono({
 });
 
 const SITE_URL = "https://digiduktas.lt";
+const TITLE = "digiduktas — DI pluginai, kurie atlieka rankų darbą už jus";
 const DESCRIPTION =
-  "Lietuviška vieta pirkti ir parduoti skaitmeninius produktus: šablonus, presetus, e-knygas, kursus ir daugiau. Netrukus startuojame.";
+  "DI pluginai pasikartojantiems darbams: sąskaitų tvarkymas, banko išrašų sutikrinimas ir daugiau. Įsidiekite patys arba leiskite mums viską įdiegti ir pritaikyti.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "digiduktas — skaitmeninių produktų turgus Lietuvai",
+    default: TITLE,
     template: "%s · digiduktas",
   },
   description: DESCRIPTION,
   keywords: [
-    "skaitmeniniai produktai",
-    "digital products Lietuva",
-    "parduoti šablonus",
-    "presetai",
-    "e-knygos",
-    "Notion šablonai",
-    "lietuviškas marketplace",
+    "DI pluginai",
+    "dirbtinio intelekto pluginai",
+    "Claude pluginai",
+    "sąskaitų apdorojimas",
+    "banko išrašų sutikrinimas",
+    "darbo automatizavimas",
     "digiduktas",
   ],
   alternates: { canonical: "/" },
@@ -43,12 +43,12 @@ export const metadata: Metadata = {
     locale: "lt_LT",
     url: SITE_URL,
     siteName: "digiduktas",
-    title: "digiduktas — skaitmeninių produktų turgus Lietuvai",
+    title: TITLE,
     description: DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "digiduktas — skaitmeninių produktų turgus Lietuvai",
+    title: TITLE,
     description: DESCRIPTION,
   },
   robots: { index: true, follow: true },

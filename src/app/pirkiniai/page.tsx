@@ -50,12 +50,12 @@ export default async function PirkiniaiPage({
       <h1 className="text-2xl font-bold tracking-tight">Mano pirkiniai</h1>
 
       {sp?.pirkta === "1" && (
-        <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+        <div className="mt-4 rounded-lg border border-success/30 bg-success-soft px-4 py-3 text-sm text-success">
           Ačiū! Apmokėjimas gautas. Jūsų pirkinys žemiau.
         </div>
       )}
       {sp?.klaida && (
-        <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mt-4 rounded-lg bg-danger-soft px-4 py-3 text-sm text-danger">
           Nepavyko atsisiųsti. Bandykite dar kartą arba susisiekite su mumis.
         </div>
       )}
@@ -64,10 +64,10 @@ export default async function PirkiniaiPage({
         <div className="mt-10 rounded-xl border border-dashed border-line bg-surface p-12 text-center">
           <p className="font-medium">Dar nieko nepirkote</p>
           <Link
-            href="/produktai"
-            className="mt-4 inline-block rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
+            href="/#pluginai"
+            className="mt-4 inline-block rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark"
           >
-            Naršyti produktus
+            Peržiūrėti pluginus
           </Link>
         </div>
       ) : (
@@ -108,7 +108,7 @@ export default async function PirkiniaiPage({
                     {canOpen && (
                       <Link
                         href={`/pirkiniai/${product.id}`}
-                        className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
+                        className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark"
                       >
                         Atidaryti
                       </Link>
@@ -119,7 +119,7 @@ export default async function PirkiniaiPage({
                         className={
                           canOpen
                             ? "rounded-lg border border-line px-4 py-2 text-sm font-medium transition-colors hover:bg-brand-soft"
-                            : "rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
+                            : "rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark"
                         }
                       >
                         Atsisiųsti

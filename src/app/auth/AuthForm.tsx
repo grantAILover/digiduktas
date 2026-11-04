@@ -75,7 +75,7 @@ export default function AuthForm({
         </label>
 
         {(state?.error ?? (!state && initialError)) && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">
             {state?.error ?? initialError}
           </p>
         )}
@@ -88,7 +88,7 @@ export default function AuthForm({
         <button
           type="submit"
           disabled={pending}
-          className="mt-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark disabled:opacity-60"
+          className="mt-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark disabled:opacity-60"
         >
           {pending
             ? "Palaukite…"

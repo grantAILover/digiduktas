@@ -1,244 +1,117 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { categoryName } from "@/lib/categories";
-import { getPayoutStatus } from "@/lib/stripe";
-import SellerApplicationForm from "./SellerApplicationForm";
+import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/require-admin";
 import DeleteProductButton from "./DeleteProductButton";
-import ConnectStripeButton from "./ConnectStripeButton";
 import { CoverPlaceholder } from "@/components/ProductCard";
-import { isFoundingSeller } from "@/lib/founding-server";
-import { FOUNDING_LIMIT, FOUNDING_UNTIL_LABEL, foundingActive } from "@/lib/founding";
+
+export const metadata = { title: "Pluginų valdymas" };
 
 const statusLabels: Record<string, { text: string; cls: string }> = {
   draft: { text: "Juodraštis", cls: "bg-line text-ink" },
-  pending: { text: "Laukia patvirtinimo", cls: "bg-brand-soft text-brand-dark" },
-  live: { text: "Paskelbta", cls: "bg-green-100 text-green-800" },
-  suspended: { text: "Sustabdyta", cls: "bg-red-100 text-red-700" },
-  removed: { text: "Pašalinta", cls: "bg-red-100 text-red-700" },
+  pending: { text: "Nepaskelbta", cls: "bg-brand-soft text-brand-dark" },
+  live: { text: "Paskelbta", cls: "bg-success-soft text-success" },
+  suspended: { text: "Sustabdyta", cls: "bg-danger-soft text-danger" },
+  removed: { text: "Pašalinta", cls: "bg-danger-soft text-danger" },
 };
 
 function eur(cents: number) {
   return (cents / 100).toFixed(2) + " €";
 }
 
-export default async function ParduotiPage({ searchParams }: PageProps<"/parduoti">) {
-  const sp = await searchParams;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+// Pluginų valdymas — tik adminui (pluginų savininkui)
+export default async function PluginuValdymasPage() {
+  const admin = await requireAdmin();
+  if (!admin) redirect("/");
+  const { supabase, user } = admin;
 
-  // 1. Neprisijungęs
-  if (!user) {
-    return (
-      <div className="mx-auto max-w-md px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Parduokite savo kūrybą</h1>
-        <p className="mt-3 text-muted">
-          Prisijunkite arba susikurkite paskyrą, kad galėtumėte pradėti parduoti.
-        </p>
-        <Link
-          href="/auth"
-          className="mt-6 inline-block rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
-        >
-          Prisijungti
-        </Link>
-      </div>
-    );
-  }
+  const { data: products } = await supabase
+    .from("products")
+    .select("id, title, slug, price_cents, cover_image_url, status, created_at")
+    .eq("seller_id", user.id)
+    .order("created_at", { ascending: false });
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_seller, stripe_account_id")
-    .eq("id", user.id)
-    .single();
-
-  // 2. Patvirtintas pardavėjas → dashboardas
-  if (profile?.is_seller) {
-    const [{ data: products }, payout, founding] = await Promise.all([
-      supabase
-        .from("products")
-        .select("id, title, slug, price_cents, category, cover_image_url, status, created_at")
-        .eq("seller_id", user.id)
-        .order("created_at", { ascending: false }),
-      getPayoutStatus(profile.stripe_account_id),
-      isFoundingSeller(user.id),
-    ]);
-
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Mano produktai</h1>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/parduoti/statistika"
-              className="rounded-lg border border-line px-4 py-2 text-sm font-medium transition-colors hover:bg-brand-soft"
-            >
-              Statistika
-            </Link>
-            <Link
-              href="/parduoti/naujas"
-              className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
-            >
-              + Naujas produktas
-            </Link>
-          </div>
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold tracking-tight">Pluginų valdymas</h1>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/parduoti/statistika"
+            className="rounded-lg border border-line px-4 py-2 text-sm font-medium transition-colors hover:bg-brand-soft"
+          >
+            Statistika
+          </Link>
+          <Link
+            href="/parduoti/naujas"
+            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark"
+          >
+            + Naujas pluginas
+          </Link>
         </div>
+      </div>
 
-        {founding && foundingActive() && (
-          <div className="mt-6 rounded-xl border border-brand/30 bg-brand-soft px-4 py-3 text-sm text-brand-dark">
-            <strong>Esate tarp pirmųjų {FOUNDING_LIMIT} pardavėjų</strong> — 0 % komisijos iki{" "}
-            {FOUNDING_UNTIL_LABEL} Visa kaina keliauja jums.
-          </div>
-        )}
-
-        {sp.stripe === "klaida" && (
-          <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            Nepavyko atidaryti išmokų nustatymo. Pabandykite dar kartą po kelių minučių — jei
-            nepavyks, parašykite mums ir sutvarkysime.
-            {typeof sp.kodas === "string" && (
-              <span className="mt-1 block text-xs text-red-600/80">Klaidos kodas: {sp.kodas}</span>
-            )}
-          </div>
-        )}
-
-        {/* Išmokų (Stripe) statusas */}
-        {payout === "active" ? (
-          <div className="mt-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-            Išmokos prijungtos — galėsite gauti pinigus už pardavimus.
-          </div>
-        ) : (
-          <div className="mt-6 flex flex-col gap-3 rounded-xl border border-line bg-brand-soft p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-semibold text-ink">
-                {payout === "pending"
-                  ? "Užbaikite išmokų nustatymą"
-                  : "Prijunkite išmokas"}
-              </p>
-              <p className="mt-0.5 text-sm text-muted">
-                Kad gautumėte pinigus už pardavimus, prijunkite Stripe (banko
-                sąskaitą, tapatybę).
-              </p>
-            </div>
-            <ConnectStripeButton label={payout === "pending" ? "Tęsti" : "Prijungti išmokas"} />
-          </div>
-        )}
-
-        {!products?.length ? (
-          <div className="mt-8 rounded-xl border border-dashed border-line bg-surface p-10 text-center">
-            <p className="text-muted">Dar neturite produktų.</p>
-            <Link
-              href="/parduoti/naujas"
-              className="mt-4 inline-block rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
-            >
-              Įkelti pirmą produktą
-            </Link>
-          </div>
-        ) : (
-          <div className="mt-8 flex flex-col gap-3">
-            {products.map((p) => {
-              const s = statusLabels[p.status] ?? statusLabels.draft;
-              return (
-                <div
-                  key={p.id}
-                  className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-brand-soft text-xl">
-                      {p.cover_image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={p.cover_image_url}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <CoverPlaceholder />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <Link
-                        href={`/produktas/${p.slug}`}
-                        className="block truncate font-semibold hover:text-brand"
-                      >
-                        {p.title}
-                      </Link>
-                      <p className="mt-0.5 flex items-center gap-2 text-xs text-muted">
-                        {categoryName(p.category)}
-                        <span className={`rounded-md px-1.5 py-0.5 font-medium ${s.cls}`}>
-                          {s.text}
-                        </span>
-                      </p>
-                    </div>
+      {!products?.length ? (
+        <div className="mt-8 rounded-xl border border-dashed border-line bg-surface p-10 text-center">
+          <p className="text-muted">Dar neturite pluginų.</p>
+          <Link
+            href="/parduoti/naujas"
+            className="mt-4 inline-block rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark"
+          >
+            Įkelti pirmą pluginą
+          </Link>
+        </div>
+      ) : (
+        <div className="mt-8 flex flex-col gap-3">
+          {products.map((p) => {
+            const s = statusLabels[p.status] ?? statusLabels.draft;
+            return (
+              <div
+                key={p.id}
+                className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-brand-soft text-xl">
+                    {p.cover_image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.cover_image_url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <CoverPlaceholder />
+                    )}
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <span className="mr-1 font-semibold text-brand">
-                      {eur(p.price_cents)}
-                    </span>
+                  <div className="min-w-0">
                     <Link
-                      href={`/pirkiniai/${p.id}`}
-                      className="rounded-md border border-line px-3 py-1.5 text-xs font-medium transition-colors hover:bg-brand-soft"
-                      title="Kaip failus matys pirkėjas"
+                      href={`/produktas/${p.slug}`}
+                      className="block truncate font-semibold hover:text-brand"
                     >
-                      Failai
+                      {p.title}
                     </Link>
-                    <Link
-                      href={`/parduoti/${p.id}/redaguoti`}
-                      className="rounded-md border border-line px-3 py-1.5 text-xs font-medium transition-colors hover:bg-brand-soft"
-                    >
-                      Redaguoti
-                    </Link>
-                    <DeleteProductButton productId={p.id} />
+                    <p className="mt-0.5 text-xs">
+                      <span className={`rounded-md px-1.5 py-0.5 font-medium ${s.cls}`}>{s.text}</span>
+                    </p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // 3. Turi laukiančią paraišką
-  const { data: application } = await supabase
-    .from("seller_applications")
-    .select("status")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (application?.status === "pending") {
-    return (
-      <div className="mx-auto max-w-md px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Paraiška gauta</h1>
-        <p className="mt-3 text-muted">
-          Peržiūrime jūsų paraišką tapti pardavėju. Pranešime, kai patvirtinsime.
-        </p>
-      </div>
-    );
-  }
-
-  if (application?.status === "rejected") {
-    return (
-      <div className="mx-auto max-w-md px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Paraiška atmesta</h1>
-        <p className="mt-3 text-muted">
-          Deja, jūsų paraiška šįkart nebuvo patvirtinta.
-        </p>
-      </div>
-    );
-  }
-
-  // 4. Nauja paraiška
-  return (
-    <div className="mx-auto max-w-md px-4 py-16">
-      <h1 className="text-center text-2xl font-bold tracking-tight">
-        Tapkite pardavėju
-      </h1>
-      <p className="mt-2 text-center text-sm text-muted">
-        Užpildykite trumpą paraišką. Patvirtinę galėsite įkelti produktus.
-      </p>
-      <SellerApplicationForm />
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="mr-1 font-semibold text-brand">{eur(p.price_cents)}</span>
+                  <Link
+                    href={`/pirkiniai/${p.id}`}
+                    className="rounded-md border border-line px-3 py-1.5 text-xs font-medium transition-colors hover:bg-brand-soft"
+                    title="Kaip failus matys pirkėjas"
+                  >
+                    Failai
+                  </Link>
+                  <Link
+                    href={`/parduoti/${p.id}/redaguoti`}
+                    className="rounded-md border border-line px-3 py-1.5 text-xs font-medium transition-colors hover:bg-brand-soft"
+                  >
+                    Redaguoti
+                  </Link>
+                  <DeleteProductButton productId={p.id} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -146,8 +146,8 @@ const planned: Entry[] = [
 const statusMeta: Record<Status, { label: string; dot: string; chip: string }> = {
   done: {
     label: "Veikia",
-    dot: "bg-green-500",
-    chip: "bg-green-100 text-green-800",
+    dot: "bg-success",
+    chip: "bg-success-soft text-success",
   },
   wip: {
     label: "Kuriama",
@@ -239,7 +239,7 @@ export default function NaujienosPage() {
       <div className="mt-12 text-center">
         <Link
           href="/parduoti"
-          className="inline-block rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
+          className="inline-block rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark"
         >
           Pradėti parduoti
         </Link>

@@ -53,36 +53,6 @@ export async function uploadFileItems(
   return out;
 }
 
-/** Pardavėjo patvirtinimas dėl teisių į turinį (privalomas įkeliant naujus failus). */
-export function RightsCheckbox({
-  checked,
-  onChange,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-line bg-surface p-3 text-sm">
-      <input
-        type="checkbox"
-        required
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
-      />
-      <span>
-        Patvirtinu, kad turinys yra mano sukurtas (arba turiu teisę jį parduoti) ir kad man yra 18 metų.
-        <span className="mt-0.5 block text-xs text-muted">
-          Svetimų darbų, vadovėlių ar kitų leidinių kopijos draudžiamos.{" "}
-          <a href="/taisykles#pazeidimai" target="_blank" className="text-brand hover:underline">
-            Taisyklės
-          </a>
-        </span>
-      </span>
-    </label>
-  );
-}
-
 export default function ProductFilesEditor({
   items,
   onChange,

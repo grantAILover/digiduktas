@@ -10,15 +10,15 @@ export default function NotFound() {
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
         <Link
           href="/"
-          className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
+          className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark"
         >
           Į pradžią
         </Link>
         <Link
-          href="/produktai"
+          href="/#pluginai"
           className="rounded-lg border border-line px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-brand-soft"
         >
-          Naršyti produktus
+          Peržiūrėti pluginus
         </Link>
       </div>
     </div>

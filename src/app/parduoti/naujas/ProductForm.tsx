@@ -3,14 +3,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ACTIVE_CATEGORIES, SOON_CATEGORIES } from "@/lib/categories";
 import { createProduct } from "../actions";
 import ProductGallery from "@/components/ProductGallery";
-import ProductFilesEditor, {
-  RightsCheckbox,
-  uploadFileItems,
-  type FileItem,
-} from "@/components/ProductFilesEditor";
+import ProductFilesEditor, { uploadFileItems, type FileItem } from "@/components/ProductFilesEditor";
 import type { NewFileInput } from "@/lib/product-files-server";
 import { MIN_PRICE_LABEL } from "@/lib/pricing";
 
@@ -32,7 +27,6 @@ export default function ProductForm() {
   const [showPreview, setShowPreview] = useState(false);
   const [fileItems, setFileItems] = useState<FileItem[]>([]);
   const [allowDownload, setAllowDownload] = useState(true);
-  const [rightsConfirmed, setRightsConfirmed] = useState(false);
 
   // Animuoti taškai, kad nesijaustų užstrigę
   useEffect(() => {
@@ -76,15 +70,10 @@ export default function ProductForm() {
       const title = String(fd.get("title") ?? "").trim();
       const description = String(fd.get("description") ?? "");
       const priceEur = String(fd.get("price") ?? "");
-      const category = String(fd.get("category") ?? "");
+      const installPriceEur = String(fd.get("install_price") ?? "");
 
       if (!title) throw new Error("Įrašykite pavadinimą.");
-      if (fileItems.length === 0) throw new Error("Pasirinkite bent vieną parduodamą failą.");
-      if (!rightsConfirmed) {
-        throw new Error(
-          "Patvirtinkite, kad turinys yra jūsų sukurtas (arba turite teisę jį parduoti) ir kad jums yra 18 metų.",
-        );
-      }
+      if (fileItems.length === 0) throw new Error("Pasirinkite bent vieną plugino failą.");
 
       const supabase = createClient();
       const {
@@ -124,12 +113,11 @@ export default function ProductForm() {
         title,
         description,
         priceEur,
-        category,
+        installPriceEur,
         coverImageUrl,
         previewImages,
         files: uploaded.filter((f): f is NewFileInput => !("id" in f)),
         allowDownload,
-        rightsConfirmed,
       });
       if (res.error) throw new Error(res.error);
 
@@ -150,7 +138,7 @@ export default function ProductForm() {
           name="title"
           type="text"
           required
-          placeholder="Pvz. Notion produktyvumo šablonas"
+          placeholder="Pvz. Buhalteris — sąskaitų ir banko išrašų tvarkymas"
           className="rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none transition-colors focus:border-brand"
         />
       </label>
@@ -160,49 +148,34 @@ export default function ProductForm() {
         <textarea
           name="description"
           rows={4}
-          placeholder="Ką pirkėjas gaus? Kam tinka?"
+          placeholder="Kokį rankų darbą pluginas atlieka? Kam tinka?"
           className="rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none transition-colors focus:border-brand"
         />
       </label>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1.5 text-sm font-medium">
-          Kaina (€)
+          Kaina — pats įsidiegia (€)
           <input
             name="price"
             type="text"
             inputMode="decimal"
             required
-            placeholder="9.99"
+            placeholder="69.00"
             className="rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none transition-colors focus:border-brand"
           />
           <span className="text-xs font-normal text-muted">Mažiausia kaina — {MIN_PRICE_LABEL}</span>
         </label>
-
         <label className="flex flex-col gap-1.5 text-sm font-medium">
-          Kategorija
-          <select
-            name="category"
-            required
-            defaultValue=""
+          Kaina su įdiegimu (€)
+          <input
+            name="install_price"
+            type="text"
+            inputMode="decimal"
+            placeholder="nebūtina"
             className="rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none transition-colors focus:border-brand"
-          >
-            <option value="" disabled>
-              Pasirink…
-            </option>
-            {ACTIVE_CATEGORIES.map((c) => (
-              <option key={c.slug} value={c.slug}>
-                {c.name}
-              </option>
-            ))}
-            <optgroup label="Netrukus">
-              {SOON_CATEGORIES.map((c) => (
-                <option key={c.slug} value={c.slug} disabled>
-                  {c.name}
-                </option>
-              ))}
-            </optgroup>
-          </select>
+          />
+          <span className="text-xs font-normal text-muted">Palikite tuščią, jei diegimo nesiūlote</span>
         </label>
       </div>
 
@@ -249,24 +222,22 @@ export default function ProductForm() {
         onError={setError}
       />
 
-      <RightsCheckbox checked={rightsConfirmed} onChange={setRightsConfirmed} />
-
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+        <p className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p>
       )}
 
       <button
         type="submit"
         disabled={busy}
-        className="mt-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark disabled:opacity-60"
+        className="mt-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark disabled:opacity-60"
       >
-        {busy ? `${progress || "Keliama"}${dots}` : "Įkelti produktą"}
+        {busy ? `${progress || "Keliama"}${dots}` : "Įkelti pluginą"}
       </button>
 
       {/* „Kaip matys pirkėjas" modalas */}
       {showPreview && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
           onClick={() => setShowPreview(false)}
         >
           <div

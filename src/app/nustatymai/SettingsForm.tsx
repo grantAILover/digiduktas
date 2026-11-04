@@ -70,7 +70,7 @@ export default function SettingsForm({
     <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
       {/* Avataras */}
       <div className="flex items-center gap-4">
-        <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-brand text-2xl font-bold text-surface">
+        <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-brand text-2xl font-bold text-on-brand">
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={preview} alt="" className="h-full w-full object-cover" />
@@ -121,7 +121,7 @@ export default function SettingsForm({
         </p>
       )}
       {msg?.error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">
           {msg.error}
         </p>
       )}
@@ -129,7 +129,7 @@ export default function SettingsForm({
       <button
         type="submit"
         disabled={busy}
-        className="w-fit rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark disabled:opacity-60"
+        className="w-fit rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark disabled:opacity-60"
       >
         {busy ? "Saugoma…" : "Išsaugoti"}
       </button>

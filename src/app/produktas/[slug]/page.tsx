@@ -1,41 +1,41 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { categoryName } from "@/lib/categories";
-import ProductCard, { VerifiedBadge, eur, type ProductCardData } from "@/components/ProductCard";
+import ProductCard, { eur, type ProductCardData } from "@/components/ProductCard";
 import ProductGallery from "@/components/ProductGallery";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { KIND_LABEL, isViewable, type FileKind } from "@/lib/files";
-import { getPayoutStatus } from "@/lib/stripe";
-import ReportButton from "./ReportButton";
 import ReviewForm from "./ReviewForm";
-import { createCheckout } from "./actions";
+import BuyForm from "./BuyForm";
 
 export const dynamic = "force-dynamic";
 
-type Seller = { display_name: string | null; is_verified: boolean };
+// Klaidos po nesėkmingo bandymo pirkti (?err=...). Serveris tikrina tą patį, ką ir forma.
+const ERRORS: Record<string, string> = {
+  tier: "Pasirinkite variantą.",
+  claude: "Pažymėkite, kad turite mokamą Claude paskyrą — be jos pluginas neveiks.",
+  consent: "Norėdami pirkti, pažymėkite sutikimą dėl skaitmeninio turinio.",
+  service: "Pažymėkite sutikimą, kad diegimo paslauga būtų pradėta teikti iškart.",
+  price: "Šio plugino šiuo metu nusipirkti negalima. Pabandykite vėliau.",
+};
 
 async function getProduct(slug: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("products")
     .select(
-      "id, seller_id, title, description, price_cents, category, cover_image_url, preview_images, allow_download, status, profiles:seller_id(display_name, is_verified)",
+      "id, seller_id, title, description, price_cents, install_price_cents, cover_image_url, preview_images, allow_download, status",
     )
     .eq("slug", slug)
     .maybeSingle();
   // RLS grąžina ne-'live' produktą tik savininkui/adminui, tad papildomo tikrinimo nereikia
-  if (!data) return null;
-  const seller: Seller | null = Array.isArray(data.profiles)
-    ? (data.profiles[0] ?? null)
-    : data.profiles;
-  return { ...data, seller };
+  return data;
 }
 
 export async function generateMetadata({ params }: PageProps<"/produktas/[slug]">) {
   const { slug } = await params;
   const p = await getProduct(slug);
-  if (!p) return { title: "Produktas nerastas" };
+  if (!p) return { title: "Pluginas nerastas" };
   return {
     title: p.title,
     description: p.description?.slice(0, 155) ?? undefined,
@@ -57,22 +57,15 @@ export default async function ProduktasPage({
   } = await supabase.auth.getUser();
   const isOwner = user?.id === p.seller_id;
 
-  // Daugiau iš to paties kūrėjo
+  // Kiti pluginai
   const { data: moreRaw } = await supabase
     .from("products")
-    .select("slug, title, price_cents, category, cover_image_url, created_at")
-    .eq("seller_id", p.seller_id)
+    .select("slug, title, price_cents, cover_image_url, created_at")
     .eq("status", "live")
     .neq("slug", slug)
     .order("created_at", { ascending: false })
     .limit(4);
-  const more: ProductCardData[] = (moreRaw ?? []).map((m) => ({
-    ...m,
-    seller: {
-      display_name: p.seller?.display_name ?? null,
-      is_verified: p.seller?.is_verified ?? false,
-    },
-  }));
+  const more: ProductCardData[] = moreRaw ?? [];
 
   // Atsiliepimai
   const { data: reviewsRaw } = await supabase
@@ -99,18 +92,6 @@ export default async function ProduktasPage({
   }
   const canReview = !!user && !isOwner && hasPurchased && !hasReviewed;
 
-  // Ar pardavėjas jau gali priimti mokėjimus (prijungęs išmokas Stripe'e).
-  // Jei ne — nerodom „Pirkti", kad pirkėjas negautų klaidos.
-  let sellerReady = true;
-  if (!isOwner) {
-    const { data: sellerProfile } = await createAdminClient()
-      .from("profiles")
-      .select("stripe_account_id")
-      .eq("id", p.seller_id)
-      .maybeSingle();
-    sellerReady = (await getPayoutStatus(sellerProfile?.stripe_account_id)) === "active";
-  }
-
   // Failų tipai — pirkėjas turi žinoti PRIEŠ pirkdamas (tik tipai, keliai lieka serveryje)
   const { data: fileKindsRaw } = await createAdminClient()
     .from("product_files")
@@ -123,12 +104,12 @@ export default async function ProduktasPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-      <Link href="/produktai" className="text-sm text-muted hover:text-ink">
-        ← Atgal į produktus
+      <Link href="/#pluginai" className="text-sm text-muted hover:text-ink">
+        ← Visi pluginai
       </Link>
 
       {sp?.pirkta === "1" && (
-        <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+        <div className="mt-4 rounded-lg border border-success/30 bg-success-soft px-4 py-3 text-sm text-success">
           Ačiū! Apmokėjimas gautas. Pirkinį rasite skiltyje „Mano pirkiniai".
         </div>
       )}
@@ -136,10 +117,10 @@ export default async function ProduktasPage({
       {p.status !== "live" && (
         <div className="mt-4 rounded-lg border border-brand/30 bg-brand-soft px-4 py-3 text-sm text-brand-dark">
           {p.status === "pending"
-            ? "Šis produktas dar laukia patvirtinimo — matomas tik jums."
+            ? "Šis pluginas nepaskelbtas — matomas tik jums."
             : p.status === "suspended"
-              ? "Šis produktas sustabdytas — matomas tik jums."
-              : "Šis produktas nepaskelbtas — matomas tik jums."}
+              ? "Šis pluginas sustabdytas — matomas tik jums."
+              : "Šis pluginas nepaskelbtas — matomas tik jums."}
         </div>
       )}
 
@@ -155,22 +136,7 @@ export default async function ProduktasPage({
 
         {/* Info */}
         <div className="flex flex-col">
-          {p.category && (
-            <Link
-              href={`/produktai?kategorija=${p.category}`}
-              className="w-fit rounded-md bg-brand-soft px-2 py-0.5 text-xs font-medium text-brand-dark transition-colors hover:bg-brand hover:text-surface"
-            >
-              {categoryName(p.category)}
-            </Link>
-          )}
-          <h1 className="mt-3 text-2xl font-bold tracking-tight">{p.title}</h1>
-
-          <p className="mt-2 flex items-center gap-1.5 text-sm text-muted">
-            <Link href={`/kurejas/${p.seller_id}`} className="hover:text-ink">
-              {p.seller?.display_name ?? "Kūrėjas"}
-            </Link>
-            {p.seller?.is_verified && <VerifiedBadge />}
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{p.title}</h1>
 
           {reviewCount > 0 && (
             <p className="mt-1 text-sm text-brand">
@@ -182,58 +148,24 @@ export default async function ProduktasPage({
           )}
 
           <p className="mt-6 text-3xl font-bold text-brand">
+            {p.install_price_cents !== null && <span className="text-base font-semibold">nuo </span>}
             {eur(p.price_cents)}
           </p>
 
-          {sp?.err === "seller" && (
-            <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-              Šis pardavėjas dar nepriima mokėjimų. Pabandykite vėliau.
-            </p>
-          )}
-          {sp?.err === "consent" && (
-            <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-              Norėdami pirkti, pažymėkite sutikimą žemiau.
-            </p>
-          )}
-          {sp?.err === "price" && (
-            <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-              Šio produkto šiuo metu nusipirkti negalima. Pabandykite vėliau.
-            </p>
+          {typeof sp?.err === "string" && ERRORS[sp.err] && (
+            <p className="mt-4 rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{ERRORS[sp.err]}</p>
           )}
 
           {isOwner ? (
             <p className="mt-4 rounded-lg border border-line bg-canvas px-4 py-3 text-sm text-muted">
-              Tai jūsų produktas.
-            </p>
-          ) : !sellerReady ? (
-            <p className="mt-4 rounded-lg border border-line bg-canvas px-4 py-3 text-sm text-muted">
-              Pardavėjas dar ruošia mokėjimų priėmimą — netrukus šį produktą bus galima įsigyti.
+              Tai jūsų pluginas.
             </p>
           ) : (
-            <form action={createCheckout}>
-              <input type="hidden" name="productId" value={p.id} />
-              <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-muted">
-                <input
-                  type="checkbox"
-                  name="consent"
-                  required
-                  className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
-                />
-                <span>
-                  Sutinku, kad skaitmeninis turinys būtų pateiktas iš karto po apmokėjimo, ir
-                  suprantu, kad tuomet prarandu teisę atsisakyti sutarties per 14 dienų.{" "}
-                  <Link href="/grazinimai" className="text-brand hover:underline">
-                    Grąžinimų tvarka
-                  </Link>
-                </span>
-              </label>
-              <button
-                type="submit"
-                className="mt-4 w-full rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark sm:w-auto"
-              >
-                Pirkti — {eur(p.price_cents)}
-              </button>
-            </form>
+            <BuyForm
+              productId={p.id}
+              priceCents={p.price_cents}
+              installPriceCents={p.install_price_cents}
+            />
           )}
           <p className="mt-2 text-xs text-muted">
             Saugus apmokėjimas per Stripe. Po apmokėjimo failą gausite iškart.
@@ -265,8 +197,6 @@ export default async function ProduktasPage({
               </p>
             </div>
           )}
-
-          <ReportButton productId={p.id} isLoggedIn={!!user} />
         </div>
       </div>
 
@@ -311,11 +241,8 @@ export default async function ProduktasPage({
       {more.length > 0 && (
         <section className="mt-14 border-t border-line pt-8">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold tracking-tight">Daugiau iš šio kūrėjo</h2>
-            <Link
-              href={`/kurejas/${p.seller_id}`}
-              className="text-sm font-medium text-brand hover:text-brand-dark"
-            >
+            <h2 className="text-lg font-bold tracking-tight">Kiti pluginai</h2>
+            <Link href="/#pluginai" className="text-sm font-medium text-brand hover:text-brand-dark">
               Visi →
             </Link>
           </div>

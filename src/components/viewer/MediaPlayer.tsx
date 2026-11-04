@@ -138,7 +138,7 @@ export default function MediaPlayer({
   }
 
   if (error) {
-    return <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>;
+    return <p className="rounded-lg bg-danger-soft px-4 py-3 text-sm text-danger">{error}</p>;
   }
 
   const common = {
@@ -166,7 +166,7 @@ export default function MediaPlayer({
             ref.current = el;
           }}
           playsInline
-          className="aspect-video w-full rounded-xl bg-ink"
+          className="aspect-video w-full rounded-xl bg-black"
         />
       ) : (
         <audio
@@ -179,7 +179,7 @@ export default function MediaPlayer({
       )}
 
       {!source && <p className="text-sm text-muted">Įkeliama…</p>}
-      {notice && <p className="text-sm text-red-700">{notice}</p>}
+      {notice && <p className="text-sm text-danger">{notice}</p>}
 
       {kind === "audio" && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -204,7 +204,7 @@ export default function MediaPlayer({
               type="button"
               onClick={() => changeRate(r)}
               className={`rounded-lg border px-2.5 py-1.5 transition-colors ${
-                rate === r ? "border-brand bg-brand text-surface" : "border-line hover:bg-brand-soft"
+                rate === r ? "border-brand bg-brand text-on-brand" : "border-line hover:bg-brand-soft"
               }`}
             >
               {String(r).replace(".", ",")}×

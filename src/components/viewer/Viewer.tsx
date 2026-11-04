@@ -114,7 +114,7 @@ export default function Viewer({
             {canDownload && (
               <a
                 href={`/api/files/${current.id}/download`}
-                className="mt-4 inline-block rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
+                className="mt-4 inline-block rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark"
               >
                 Atsisiųsti ({formatBytes(current.size_bytes) || "failas"})
               </a>

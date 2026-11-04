@@ -26,7 +26,7 @@ export default async function PirkinysPage({ params }: PageProps<"/pirkiniai/[pr
         <p className="mt-3 text-muted">Šį produktą galite atidaryti tik jį nusipirkę.</p>
         <Link
           href="/pirkiniai"
-          className="mt-6 inline-block rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark"
+          className="mt-6 inline-block rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark"
         >
           Mano pirkiniai
         </Link>
@@ -53,7 +53,7 @@ export default async function PirkinysPage({ params }: PageProps<"/pirkiniai/[pr
 
   const back = {
     buyer: { href: "/pirkiniai", label: "Mano pirkiniai" },
-    owner: { href: "/parduoti", label: "Mano produktai" },
+    owner: { href: "/parduoti", label: "Pluginų valdymas" },
     admin: { href: "/admin", label: "Admin" },
   }[role];
 

@@ -3,8 +3,9 @@ import crypto from "crypto";
 import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getStripe, platformFee } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { sendOrderConfirmation } from "@/lib/email";
+import { parseTier } from "@/lib/tiers";
 
 export type FulfillResult = "created" | "exists" | "skipped";
 
@@ -43,19 +44,18 @@ export async function fulfillCheckoutSession(
 
   // Kiek pirkėjas REALIAI sumokėjo (kaina galėjo pasikeisti tarp pirkimo ir apdorojimo)
   const price = session.amount_total ?? product.price_cents;
-  // Realiai taikyta komisija (founding pardavėjams — 0); senesniems mokėjimams — įprasta
-  const metaFee = Number(session.metadata?.fee_cents);
-  const fee =
-    Number.isInteger(metaFee) && metaFee >= 0 && metaFee <= price ? metaFee : platformFee(price);
+  const tier = parseTier(session.metadata?.tier) ?? "self";
 
   const { data: order, error } = await db
     .from("orders")
     .insert({
       buyer_id: buyerId,
       product_id: productId,
+      tier,
       price_cents: price,
-      platform_fee_cents: fee,
-      seller_amount_cents: price - fee,
+      // Pardavėjas vienas (platforma) — komisijos nėra, visa suma mums
+      platform_fee_cents: 0,
+      seller_amount_cents: price,
       status: "paid",
       stripe_session_id: session.id,
       stripe_payment_intent: paymentIntentId(session.payment_intent),
@@ -74,6 +74,7 @@ export async function fulfillCheckoutSession(
     to: session.customer_details?.email ?? session.customer_email,
     productTitle: product.title,
     priceCents: price,
+    tier,
   });
   return "created";
 }

@@ -59,12 +59,12 @@ export default function ReviewForm({
         className="rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none transition-colors focus:border-brand"
       />
 
-      {state?.error && <p className="text-xs text-red-600">{state.error}</p>}
+      {state?.error && <p className="text-xs text-danger">{state.error}</p>}
 
       <button
         type="submit"
         disabled={pending}
-        className="w-fit rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark disabled:opacity-60"
+        className="w-fit rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark disabled:opacity-60"
       >
         {pending ? "Siunčiama…" : "Palikti atsiliepimą"}
       </button>

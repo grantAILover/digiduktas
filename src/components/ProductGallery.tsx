@@ -77,7 +77,7 @@ export default function ProductGallery({
             >
               ›
             </button>
-            <span className="absolute bottom-2 right-2 rounded-md bg-ink/70 px-2 py-0.5 text-xs font-medium text-surface">
+            <span className="absolute bottom-2 right-2 rounded-md bg-black/70 px-2 py-0.5 text-xs font-medium text-white">
               {i + 1} / {count}
             </span>
           </>
@@ -106,7 +106,7 @@ export default function ProductGallery({
       {/* Padidinimas (lightbox) */}
       {zoom && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
           onClick={() => setZoom(false)}
         >
           <button

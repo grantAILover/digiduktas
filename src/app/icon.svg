@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="24" fill="#f97316" />
+  <rect width="100" height="100" rx="24" fill="#d77d42" />
   <text
     x="50"
     y="54"
     font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif"
     font-size="68"
     font-weight="700"
-    fill="#ffffff"
+    fill="#16171a"
     text-anchor="middle"
     dominant-baseline="central"
   >d</text>

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "digiduktas — skaitmeninių produktų turgus";
+export const alt = "digiduktas — DI pluginai, kurie atlieka rankų darbą už jus";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -17,7 +17,7 @@ export default function Image() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "#faf9f7",
+          background: "#16171a",
           fontFamily: "sans-serif",
         }}
       >
@@ -29,8 +29,8 @@ export default function Image() {
             width: 170,
             height: 170,
             borderRadius: 42,
-            background: "#f97316",
-            color: "#ffffff",
+            background: "#d77d42",
+            color: "#16171a",
             fontSize: 120,
             fontWeight: 800,
             marginBottom: 44,
@@ -38,18 +38,18 @@ export default function Image() {
         >
           d
         </div>
-        <div style={{ display: "flex", fontSize: 78, fontWeight: 800, color: "#1c1917" }}>
+        <div style={{ display: "flex", fontSize: 78, fontWeight: 800, color: "#eceef1" }}>
           <span>digi</span>
-          <span style={{ color: "#f97316" }}>duktas</span>
+          <span style={{ color: "#d77d42" }}>duktas</span>
         </div>
-        <div style={{ display: "flex", fontSize: 34, color: "#78716c", marginTop: 22 }}>
-          Pirkite ir parduokite skaitmeninius produktus
+        <div style={{ display: "flex", fontSize: 34, color: "#a3a7af", marginTop: 22 }}>
+          DI pluginai - leiskite DI dirbti
         </div>
         <div
           style={{
             display: "flex",
             fontSize: 26,
-            color: "#f97316",
+            color: "#d77d42",
             fontWeight: 600,
             marginTop: 40,
           }}

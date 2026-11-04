@@ -2,14 +2,9 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { ACTIVE_CATEGORIES, SOON_CATEGORIES, categoryName, isActiveCategory } from "@/lib/categories";
 import { updateProduct } from "../../product-actions";
 import ProductGallery from "@/components/ProductGallery";
-import ProductFilesEditor, {
-  RightsCheckbox,
-  uploadFileItems,
-  type FileItem,
-} from "@/components/ProductFilesEditor";
+import ProductFilesEditor, { uploadFileItems, type FileItem } from "@/components/ProductFilesEditor";
 import type { FileKind } from "@/lib/files";
 import { MIN_PRICE_LABEL } from "@/lib/pricing";
 
@@ -31,7 +26,7 @@ export default function EditProductForm({
     title: string;
     description: string | null;
     price_cents: number;
-    category: string | null;
+    install_price_cents: number | null;
     cover_image_url: string | null;
     preview_images?: string[] | null;
     allow_download: boolean;
@@ -42,8 +37,6 @@ export default function EditProductForm({
     files.map((f) => ({ key: f.id, existingId: f.id, file_name: f.file_name, kind: f.kind, size_bytes: f.size_bytes })),
   );
   const [allowDownload, setAllowDownload] = useState(product.allow_download);
-  const [rightsConfirmed, setRightsConfirmed] = useState(false);
-  const hasNewFiles = fileItems.some((i) => i.file);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(product.cover_image_url);
@@ -126,12 +119,7 @@ export default function EditProductForm({
         previewImages = [...keptPreviews, ...uploaded];
       }
 
-      if (fileItems.length === 0) throw new Error("Palikite bent vieną parduodamą failą.");
-      if (hasNewFiles && !rightsConfirmed) {
-        throw new Error(
-          "Patvirtinkite, kad naujų failų turinys yra jūsų sukurtas (arba turite teisę jį parduoti) ir kad jums yra 18 metų.",
-        );
-      }
+      if (fileItems.length === 0) throw new Error("Palikite bent vieną plugino failą.");
       const uploadedFiles = await uploadFileItems(supabase, user.id, fileItems);
 
       const res = await updateProduct({
@@ -139,12 +127,11 @@ export default function EditProductForm({
         title: String(fd.get("title") ?? ""),
         description: String(fd.get("description") ?? ""),
         priceEur: String(fd.get("price") ?? ""),
-        category: String(fd.get("category") ?? ""),
+        installPriceEur: String(fd.get("install_price") ?? ""),
         coverImageUrl,
         previewImages,
         files: uploadedFiles,
         allowDownload,
-        rightsConfirmed,
       });
       if (res?.error) throw new Error(res.error);
       // sėkmės atveju updateProduct redirect'ina į /parduoti
@@ -171,9 +158,9 @@ export default function EditProductForm({
         />
       </label>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1.5 text-sm font-medium">
-          Kaina (€)
+          Kaina — pats įsidiegia (€)
           <input
             name="price"
             type="text"
@@ -184,30 +171,19 @@ export default function EditProductForm({
           />
           <span className="text-xs font-normal text-muted">Mažiausia kaina — {MIN_PRICE_LABEL}</span>
         </label>
-
         <label className="flex flex-col gap-1.5 text-sm font-medium">
-          Kategorija
-          <select name="category" required defaultValue={product.category ?? ""} className={inputCls}>
-            <option value="" disabled>
-              Pasirink…
-            </option>
-            {ACTIVE_CATEGORIES.map((c) => (
-              <option key={c.slug} value={c.slug}>
-                {c.name}
-              </option>
-            ))}
-            {/* Sena (nebeaktyvi) kategorija — galima palikti, bet ne pasirinkti iš naujo */}
-            {product.category && !isActiveCategory(product.category) && (
-              <option value={product.category}>{categoryName(product.category)} (senoji)</option>
-            )}
-            <optgroup label="Netrukus">
-              {SOON_CATEGORIES.filter((c) => c.slug !== product.category).map((c) => (
-                <option key={c.slug} value={c.slug} disabled>
-                  {c.name}
-                </option>
-              ))}
-            </optgroup>
-          </select>
+          Kaina su įdiegimu (€)
+          <input
+            name="install_price"
+            type="text"
+            inputMode="decimal"
+            placeholder="nebūtina"
+            defaultValue={
+              product.install_price_cents !== null ? (product.install_price_cents / 100).toFixed(2) : ""
+            }
+            className={inputCls}
+          />
+          <span className="text-xs font-normal text-muted">Palikite tuščią, jei diegimo nesiūlote</span>
         </label>
       </div>
 
@@ -243,7 +219,7 @@ export default function EditProductForm({
                   type="button"
                   onClick={() => removeKept(url)}
                   aria-label="Pašalinti"
-                  className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-ink text-xs text-surface"
+                  className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-black text-xs text-white"
                 >
                   ✕
                 </button>
@@ -257,7 +233,7 @@ export default function EditProductForm({
                   type="button"
                   onClick={() => removeNew(idx)}
                   aria-label="Pašalinti"
-                  className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-ink text-xs text-surface"
+                  className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-black text-xs text-white"
                 >
                   ✕
                 </button>
@@ -295,23 +271,21 @@ export default function EditProductForm({
         onError={setError}
       />
 
-      {hasNewFiles && <RightsCheckbox checked={rightsConfirmed} onChange={setRightsConfirmed} />}
-
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+        <p className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p>
       )}
 
       <button
         type="submit"
         disabled={busy}
-        className="w-fit rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-surface transition-colors hover:bg-brand-dark disabled:opacity-60"
+        className="w-fit rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark disabled:opacity-60"
       >
         {busy ? "Saugoma…" : "Išsaugoti pakeitimus"}
       </button>
 
       {showPreview && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
           onClick={() => setShowPreview(false)}
         >
           <div

@@ -1,11 +1,10 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { parsePriceEur, priceError } from "@/lib/pricing";
-import { isActiveCategory } from "@/lib/categories";
+import { requireAdmin } from "@/lib/require-admin";
+import { parseOptionalPrice, parsePriceEur, priceError } from "@/lib/pricing";
+import { PLUGIN_CATEGORY } from "@/lib/categories";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import {
   checkFileCount,
   effectiveAllowDownload,
@@ -14,49 +13,16 @@ import {
   type NewFileRow,
 } from "@/lib/product-files-server";
 
-export type ApplyState = { error?: string } | null;
-
-// ── Pardavėjo paraiška (#1) ─────────────────────────────────
-export async function applySeller(
-  _prev: ApplyState,
-  formData: FormData,
-): Promise<ApplyState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Pirma prisijunkite." };
-
-  const full_name = String(formData.get("full_name") ?? "").trim();
-  const about = String(formData.get("about") ?? "").trim();
-  const portfolio_url = String(formData.get("portfolio_url") ?? "").trim();
-
-  if (!full_name) return { error: "Įrašykite savo vardą." };
-
-  const { error } = await supabase.from("seller_applications").insert({
-    user_id: user.id,
-    full_name,
-    about: about || null,
-    portfolio_url: portfolio_url || null,
-  });
-
-  if (error) return { error: "Nepavyko pateikti paraiškos. Bandykite dar kartą." };
-
-  revalidatePath("/parduoti");
-  redirect("/parduoti");
-}
-
-// ── Produkto sukūrimas (#3) ─────────────────────────────────
+// ── Plugino sukūrimas (tik adminas) ─────────────────────────
 export type CreateProductInput = {
   title: string;
   description: string;
   priceEur: string;
-  category: string;
+  installPriceEur?: string; // „Su įdiegimu"; tuščia — lygis nesiūlomas
   coverImageUrl: string | null;
   previewImages?: string[];
   files: NewFileInput[]; // tvarka = skyrių tvarka
   allowDownload: boolean;
-  rightsConfirmed: boolean; // „turinys mano sukurtas arba turiu teisę jį parduoti"
 };
 
 export type CreateProductResult = { ok?: boolean; slug?: string; error?: string };
@@ -76,33 +42,12 @@ function slugify(input: string): string {
 export async function createProduct(
   input: CreateProductInput,
 ): Promise<CreateProductResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Pirma prisijunkite." };
-
-  // Tik patvirtinti pardavėjai gali kurti
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_seller, is_verified")
-    .eq("id", user.id)
-    .single();
-  if (!profile?.is_seller) {
-    return { error: "Jūsų pardavėjo paraiška dar nepatvirtinta." };
-  }
-
-  // Verified kūrėjų produktai skelbiami iškart; kitų — peržiūrimi
-  const status = profile.is_verified ? "live" : "pending";
+  const admin = await requireAdmin();
+  if (!admin) return { error: "Pluginus įkelti gali tik administratorius." };
+  const { supabase, user } = admin;
 
   const title = input.title.trim();
   if (!title) return { error: "Įrašykite pavadinimą." };
-  if (!isActiveCategory(input.category)) return { error: "Pasirinkite kategoriją." };
-  if (input.rightsConfirmed !== true) {
-    return {
-      error: "Patvirtinkite, kad turinys yra jūsų sukurtas (arba turite teisę jį parduoti) ir kad jums yra 18 metų.",
-    };
-  }
 
   const countError = checkFileCount(input.files?.length ?? 0);
   if (countError) return { error: countError };
@@ -116,6 +61,8 @@ export async function createProduct(
   const priceCents = parsePriceEur(input.priceEur);
   const priceProblem = priceError(priceCents);
   if (priceProblem || priceCents === null) return { error: priceProblem ?? "Neteisinga kaina." };
+  const install = parseOptionalPrice(input.installPriceEur);
+  if (install.error) return { error: install.error };
 
   const slug = `${slugify(title)}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -127,27 +74,28 @@ export async function createProduct(
       slug,
       description: input.description.trim() || null,
       price_cents: priceCents,
-      category: input.category || null,
+      install_price_cents: install.cents,
+      category: PLUGIN_CATEGORY,
       cover_image_url: input.coverImageUrl,
       preview_images: (input.previewImages ?? []).slice(0, 7),
       file_path: fileRows[0].storage_path, // atgaliniam suderinamumui
-      rights_confirmed_at: new Date().toISOString(),
+      rights_confirmed_at: new Date().toISOString(), // savas turinys
       allow_download: effectiveAllowDownload(
         !!input.allowDownload,
         fileRows.map((r) => r.kind),
       ),
-      status, // verified → 'live', kiti → 'pending' (peržiūra)
+      status: "live", // savi pluginai — skelbiami iškart
     })
     .select("id")
     .single();
 
-  if (error || !product) return { error: "Nepavyko išsaugoti produkto." };
+  if (error || !product) return { error: "Nepavyko išsaugoti plugino." };
 
   const { error: filesError } = await supabase
     .from("product_files")
     .insert(fileRows.map((r, i) => ({ ...r, product_id: product.id, position: i })));
   if (filesError) {
-    // Be failų produktas beprasmis — atšaukiam (savininkas trinti negali, tad per admin)
+    // Be failų pluginas beprasmis — atšaukiam
     await createAdminClient().from("products").delete().eq("id", product.id);
     return { error: "Nepavyko išsaugoti failų. Bandykite dar kartą." };
   }
