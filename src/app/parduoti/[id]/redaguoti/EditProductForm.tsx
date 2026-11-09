@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { updateProduct } from "../../product-actions";
 import ProductGallery from "@/components/ProductGallery";
+import PluginDetailsFields from "@/components/PluginDetailsFields";
 import ProductFilesEditor, { uploadFileItems, type FileItem } from "@/components/ProductFilesEditor";
 import type { FileKind } from "@/lib/files";
 import { MIN_PRICE_LABEL } from "@/lib/pricing";
@@ -27,6 +28,9 @@ export default function EditProductForm({
     description: string | null;
     price_cents: number;
     install_price_cents: number | null;
+    requirements: string | null;
+    demo_url: string | null;
+    install_guide: string | null;
     cover_image_url: string | null;
     preview_images?: string[] | null;
     allow_download: boolean;
@@ -128,6 +132,9 @@ export default function EditProductForm({
         description: String(fd.get("description") ?? ""),
         priceEur: String(fd.get("price") ?? ""),
         installPriceEur: String(fd.get("install_price") ?? ""),
+        requirements: String(fd.get("requirements") ?? ""),
+        demoUrl: String(fd.get("demo_url") ?? ""),
+        installGuide: String(fd.get("install_guide") ?? ""),
         coverImageUrl,
         previewImages,
         files: uploadedFiles,
@@ -157,6 +164,8 @@ export default function EditProductForm({
           className={inputCls}
         />
       </label>
+
+      <PluginDetailsFields defaults={product} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1.5 text-sm font-medium">

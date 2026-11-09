@@ -3,8 +3,10 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { eur } from "@/components/ProductCard";
-import { KIND_LABEL, isViewable, type FileKind } from "@/lib/files";
+import { KIND_LABEL, type FileKind } from "@/lib/files";
 import { fulfillFromReturn } from "@/lib/fulfillment";
+import { TIER_LABEL } from "@/lib/tiers";
+import InstallForm, { type ExistingInstall } from "./InstallForm";
 
 export const metadata = { title: "Mano pirkiniai" };
 
@@ -37,13 +39,24 @@ export default async function PirkiniaiPage({
   const { data: orders } = await admin
     .from("orders")
     .select(
-      "id, price_cents, created_at, products(id, title, slug, allow_download, product_files(id, kind, position))",
+      "id, tier, price_cents, created_at, products(id, title, slug, allow_download, product_files(id, kind, position))",
     )
     .eq("buyer_id", user.id)
     .eq("status", "paid")
     .order("created_at", { ascending: false });
 
   const rows = orders ?? [];
+
+  // Diegimo anketos „Su įdiegimu" užsakymams
+  const installOrderIds = rows.filter((o) => o.tier === "install").map((o) => o.id);
+  const installs = new Map<string, ExistingInstall>();
+  if (installOrderIds.length) {
+    const { data } = await admin
+      .from("install_requests")
+      .select("order_id, phone, preferred_time, os, tools, notes, status")
+      .in("order_id", installOrderIds);
+    for (const r of data ?? []) installs.set(r.order_id, r as ExistingInstall);
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
@@ -78,16 +91,14 @@ export default async function PirkiniaiPage({
             const files = [...(product?.product_files ?? [])].sort((a, b) => a.position - b.position);
             const kinds = [...new Set(files.map((f) => KIND_LABEL[f.kind]))].join(", ");
 
-            // „Atidaryti" — kai yra ką peržiūrėti naršyklėje arba keli failai (sąrašas).
-            // „Atsisiųsti" — tik jei pardavėjas leidžia; keliems failams — viewer'yje prie kiekvieno.
-            const canOpen = files.some((f) => isViewable(f.kind)) || files.length > 1;
+            // „Atidaryti" — visada: ten diegimo instrukcija ir failų sąrašas.
+            // „Atsisiųsti" — tik jei leidžiama; keliems failams — viewer'yje prie kiekvieno.
+            const canOpen = true;
             const directDownload = product?.allow_download && files.length === 1;
 
             return (
-              <div
-                key={o.id}
-                className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4 sm:flex-row sm:items-center sm:justify-between"
-              >
+              <div key={o.id} className="rounded-xl border border-line bg-surface p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <Link
                     href={product?.slug ? `/produktas/${product.slug}` : "#"}
@@ -97,6 +108,7 @@ export default async function PirkiniaiPage({
                   </Link>
                   <p className="text-xs text-muted">
                     {eur(o.price_cents)}
+                    {o.tier === "install" && ` · ${TIER_LABEL.install}`}
                     {kinds && ` · ${kinds}`}
                     {files.length > 1 && ` · ${files.length} failai`}
                   </p>
@@ -127,6 +139,8 @@ export default async function PirkiniaiPage({
                     )}
                   </div>
                 )}
+              </div>
+              {o.tier === "install" && <InstallForm orderId={o.id} existing={installs.get(o.id) ?? null} />}
               </div>
             );
           })}

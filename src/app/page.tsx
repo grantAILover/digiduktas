@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import ProductCard, { type ProductCardData } from "@/components/ProductCard";
+import BundleForm from "@/components/BundleForm";
 
 // Pluginų sąrašas visada aktualus (įkėlus naują — matosi iškart)
 export const dynamic = "force-dynamic";
@@ -12,6 +13,9 @@ export default async function Home() {
     .eq("status", "live")
     .order("created_at", { ascending: false });
   const plugins: ProductCardData[] = data ?? [];
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   return (
     <div>
@@ -52,6 +56,20 @@ export default async function Home() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* Komplektas (3 lygis) */}
+      <section id="komplektas" className="scroll-mt-16 border-t border-line">
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_1.4fr]">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Reikia kelių pluginų kartu?</h2>
+            <p className="mt-3 text-muted">
+              Sujungsime kelis pluginus, kad jie dirbtų kartu, ir pritaikysime juos būtent jūsų
+              darbui. Aprašykite, ką norite automatizuoti — atsiųsime pasiūlymą ir kainą.
+            </p>
+          </div>
+          <BundleForm plugins={plugins.map((p) => p.title)} defaultEmail={user?.email ?? undefined} />
+        </div>
       </section>
     </div>
   );

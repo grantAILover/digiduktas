@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { createProduct } from "../actions";
 import ProductGallery from "@/components/ProductGallery";
+import PluginDetailsFields from "@/components/PluginDetailsFields";
 import ProductFilesEditor, { uploadFileItems, type FileItem } from "@/components/ProductFilesEditor";
 import type { NewFileInput } from "@/lib/product-files-server";
 import { MIN_PRICE_LABEL } from "@/lib/pricing";
@@ -114,6 +115,9 @@ export default function ProductForm() {
         description,
         priceEur,
         installPriceEur,
+        requirements: String(fd.get("requirements") ?? ""),
+        demoUrl: String(fd.get("demo_url") ?? ""),
+        installGuide: String(fd.get("install_guide") ?? ""),
         coverImageUrl,
         previewImages,
         files: uploaded.filter((f): f is NewFileInput => !("id" in f)),
@@ -152,6 +156,8 @@ export default function ProductForm() {
           className="rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none transition-colors focus:border-brand"
         />
       </label>
+
+      <PluginDetailsFields />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1.5 text-sm font-medium">

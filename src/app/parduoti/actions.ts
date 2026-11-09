@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/require-admin";
 import { parseOptionalPrice, parsePriceEur, priceError } from "@/lib/pricing";
 import { PLUGIN_CATEGORY } from "@/lib/categories";
+import { parsePluginDetails, type PluginDetailsInput } from "@/lib/plugin-details";
 import { revalidatePath } from "next/cache";
 import {
   checkFileCount,
@@ -14,7 +15,7 @@ import {
 } from "@/lib/product-files-server";
 
 // ── Plugino sukūrimas (tik adminas) ─────────────────────────
-export type CreateProductInput = {
+export type CreateProductInput = PluginDetailsInput & {
   title: string;
   description: string;
   priceEur: string;
@@ -63,6 +64,8 @@ export async function createProduct(
   if (priceProblem || priceCents === null) return { error: priceProblem ?? "Neteisinga kaina." };
   const install = parseOptionalPrice(input.installPriceEur);
   if (install.error) return { error: install.error };
+  const details = parsePluginDetails(input);
+  if (!details.data) return { error: details.error };
 
   const slug = `${slugify(title)}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -75,6 +78,8 @@ export async function createProduct(
       description: input.description.trim() || null,
       price_cents: priceCents,
       install_price_cents: install.cents,
+      requirements: details.data.requirements,
+      demo_url: details.data.demo_url,
       category: PLUGIN_CATEGORY,
       cover_image_url: input.coverImageUrl,
       preview_images: (input.previewImages ?? []).slice(0, 7),
@@ -98,6 +103,16 @@ export async function createProduct(
     // Be failų pluginas beprasmis — atšaukiam
     await createAdminClient().from("products").delete().eq("id", product.id);
     return { error: "Nepavyko išsaugoti failų. Bandykite dar kartą." };
+  }
+
+  // Diegimo instrukcija — atskiroje, tik serveriui pasiekiamoje lentelėje
+  if (details.data.install_guide) {
+    await createAdminClient()
+      .from("product_guides")
+      .upsert(
+        { product_id: product.id, install_guide: details.data.install_guide, updated_at: new Date().toISOString() },
+        { onConflict: "product_id" },
+      );
   }
 
   revalidatePath("/parduoti");

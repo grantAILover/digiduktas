@@ -4,7 +4,16 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/require-admin";
 import { sourceOf, sellerTypeLabel } from "@/lib/sources";
 import { eur } from "@/components/ProductCard";
-import { setProductStatus } from "./actions";
+import { INSTALL_STATUS_LABEL, OS_LABEL, type InstallOs, type InstallStatus } from "@/lib/install";
+import { BUNDLE_STATUS_LABEL, type BundleStatus } from "@/lib/bundle";
+import { setBundleStatus, setInstallStatus, setProductStatus } from "./actions";
+
+const STATUS_ORDER: Record<InstallStatus, number> = { naujas: 0, suderinta: 1, idiegta: 2 };
+const STATUS_CLS: Record<InstallStatus, string> = {
+  naujas: "bg-brand-soft text-brand-dark",
+  suderinta: "bg-line text-ink",
+  idiegta: "bg-success-soft text-success",
+};
 
 export const metadata = { title: "Admin" };
 
@@ -32,6 +41,31 @@ export default async function AdminPage() {
     if (w.referred_by) invitedBy.set(w.referred_by, (invitedBy.get(w.referred_by) ?? 0) + 1);
   }
 
+  // Diegimo anketos: nauji viršuje, tada pagal datą
+  const { data: installsRaw } = await createAdminClient()
+    .from("install_requests")
+    .select("id, email, phone, preferred_time, os, tools, notes, status, created_at, orders(price_cents, products(title))")
+    .order("created_at", { ascending: false });
+  const installs = (installsRaw ?? [])
+    .map((r) => {
+      const order = Array.isArray(r.orders) ? r.orders[0] : r.orders;
+      const product = order && (Array.isArray(order.products) ? order.products[0] : order.products);
+      return { ...r, status: r.status as InstallStatus, title: (product?.title as string) ?? "Pluginas" };
+    })
+    .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
+  const newInstalls = installs.filter((r) => r.status === "naujas").length;
+
+  // Komplekto užklausos: naujos viršuje
+  const { data: bundlesRaw } = await createAdminClient()
+    .from("bundle_requests")
+    .select("id, name, email, phone, plugins, message, status, created_at")
+    .order("created_at", { ascending: false });
+  const BUNDLE_ORDER: Record<BundleStatus, number> = { naujas: 0, atsakyta: 1, uzdaryta: 2 };
+  const bundles = (bundlesRaw ?? [])
+    .map((b) => ({ ...b, status: b.status as BundleStatus, plugins: (b.plugins ?? []) as string[] }))
+    .sort((a, b) => BUNDLE_ORDER[a.status] - BUNDLE_ORDER[b.status]);
+  const newBundles = bundles.filter((b) => b.status === "naujas").length;
+
   const btn =
     "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors";
 
@@ -40,7 +74,7 @@ export default async function AdminPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Admin</h1>
-          <p className="mt-1 text-sm text-muted">Laukiančiųjų sąrašas ir paskelbti pluginai.</p>
+          <p className="mt-1 text-sm text-muted">Diegimai, paskelbti pluginai ir laukiančiųjų sąrašas.</p>
         </div>
         <Link
           href="/parduoti"
@@ -49,6 +83,152 @@ export default async function AdminPage() {
           Pluginų valdymas
         </Link>
       </div>
+
+      {/* Diegimai („Su įdiegimu" anketos) */}
+      <section id="diegimai" className="mt-8 scroll-mt-20">
+        <h2 className="text-lg font-semibold">
+          Diegimai{" "}
+          <span className="text-muted">
+            ({installs.length}
+            {newInstalls > 0 && `, nauji: ${newInstalls}`})
+          </span>
+        </h2>
+        {installs.length === 0 ? (
+          <p className="mt-2 text-sm text-muted">Diegimo anketų dar nėra.</p>
+        ) : (
+          <div className="mt-3 flex flex-col gap-3">
+            {installs.map((r) => (
+              <div key={r.id} className="rounded-xl border border-line bg-surface p-4 text-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-semibold">{r.title}</span>
+                  <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${STATUS_CLS[r.status]}`}>
+                    {INSTALL_STATUS_LABEL[r.status]}
+                  </span>
+                </div>
+                <dl className="mt-2 grid gap-x-4 gap-y-1 sm:grid-cols-[9rem_1fr]">
+                  <dt className="text-muted">Kontaktai</dt>
+                  <dd>
+                    <a href={`tel:${r.phone}`} className="text-brand hover:underline">
+                      {r.phone}
+                    </a>
+                    {r.email && (
+                      <>
+                        {" · "}
+                        <a href={`mailto:${r.email}`} className="text-brand hover:underline">
+                          {r.email}
+                        </a>
+                      </>
+                    )}
+                  </dd>
+                  <dt className="text-muted">Patogus laikas</dt>
+                  <dd>{r.preferred_time}</dd>
+                  <dt className="text-muted">Kompiuteris</dt>
+                  <dd>{OS_LABEL[r.os as InstallOs] ?? r.os}</dd>
+                  {r.tools && (
+                    <>
+                      <dt className="text-muted">Programos</dt>
+                      <dd>{r.tools}</dd>
+                    </>
+                  )}
+                  {r.notes && (
+                    <>
+                      <dt className="text-muted">Pastabos</dt>
+                      <dd className="whitespace-pre-line">{r.notes}</dd>
+                    </>
+                  )}
+                  <dt className="text-muted">Gauta</dt>
+                  <dd>{new Date(r.created_at).toLocaleString("lt-LT")}</dd>
+                </dl>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(["naujas", "suderinta", "idiegta"] as InstallStatus[])
+                    .filter((s) => s !== r.status)
+                    .map((s) => (
+                      <form key={s} action={setInstallStatus}>
+                        <input type="hidden" name="id" value={r.id} />
+                        <input type="hidden" name="status" value={s} />
+                        <button
+                          className={`${btn} ${
+                            s === "idiegta"
+                              ? "bg-brand text-on-brand hover:bg-brand-dark"
+                              : "border border-line hover:bg-brand-soft"
+                          }`}
+                        >
+                          {s === "naujas" ? "Grąžinti į naujus" : s === "suderinta" ? "Laikas suderintas" : "Pažymėti įdiegta"}
+                        </button>
+                      </form>
+                    ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Komplekto užklausos (3 lygis) */}
+      <section id="uzklausos" className="mt-10 scroll-mt-20">
+        <h2 className="text-lg font-semibold">
+          Komplekto užklausos{" "}
+          <span className="text-muted">
+            ({bundles.length}
+            {newBundles > 0 && `, naujos: ${newBundles}`})
+          </span>
+        </h2>
+        {bundles.length === 0 ? (
+          <p className="mt-2 text-sm text-muted">Užklausų dar nėra.</p>
+        ) : (
+          <div className="mt-3 flex flex-col gap-3">
+            {bundles.map((b) => (
+              <div key={b.id} className="rounded-xl border border-line bg-surface p-4 text-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-semibold">{b.name}</span>
+                  <span
+                    className={`rounded-md px-2 py-0.5 text-xs font-semibold ${
+                      b.status === "naujas"
+                        ? "bg-brand-soft text-brand-dark"
+                        : b.status === "atsakyta"
+                          ? "bg-line text-ink"
+                          : "bg-success-soft text-success"
+                    }`}
+                  >
+                    {BUNDLE_STATUS_LABEL[b.status]}
+                  </span>
+                </div>
+                <p className="mt-1">
+                  <a href={`mailto:${b.email}`} className="text-brand hover:underline">
+                    {b.email}
+                  </a>
+                  {b.phone && (
+                    <>
+                      {" · "}
+                      <a href={`tel:${b.phone}`} className="text-brand hover:underline">
+                        {b.phone}
+                      </a>
+                    </>
+                  )}
+                  <span className="text-muted"> · {new Date(b.created_at).toLocaleString("lt-LT")}</span>
+                </p>
+                {b.plugins.length > 0 && (
+                  <p className="mt-1 text-muted">Pluginai: {b.plugins.join(", ")}</p>
+                )}
+                <p className="mt-2 whitespace-pre-line">{b.message}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(["naujas", "atsakyta", "uzdaryta"] as BundleStatus[])
+                    .filter((s) => s !== b.status)
+                    .map((s) => (
+                      <form key={s} action={setBundleStatus}>
+                        <input type="hidden" name="id" value={b.id} />
+                        <input type="hidden" name="status" value={s} />
+                        <button className={`${btn} border border-line hover:bg-brand-soft`}>
+                          {s === "naujas" ? "Grąžinti į naujas" : s === "atsakyta" ? "Pažymėti atsakyta" : "Uždaryti"}
+                        </button>
+                      </form>
+                    ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* 0. Laukiančiųjų sąrašas */}
       <section className="mt-8">

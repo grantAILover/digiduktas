@@ -1,6 +1,8 @@
 "use server";
 
 import { requireAdmin } from "@/lib/require-admin";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { parsePluginDetails, type PluginDetailsInput } from "@/lib/plugin-details";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { FileKind } from "@/lib/files";
@@ -16,7 +18,7 @@ import {
 
 export type EditState = { error?: string } | null;
 
-export type UpdateProductInput = {
+export type UpdateProductInput = PluginDetailsInput & {
   id: string;
   title: string;
   description: string;
@@ -45,12 +47,16 @@ export async function updateProduct(
   if (priceProblem || priceCents === null) return { error: priceProblem ?? "Neteisinga kaina." };
   const install = parseOptionalPrice(input.installPriceEur);
   if (install.error) return { error: install.error };
+  const details = parsePluginDetails(input);
+  if (!details.data) return { error: details.error };
 
   const patch: Record<string, unknown> = {
     title,
     description: input.description.trim() || null,
     price_cents: priceCents,
     install_price_cents: install.cents,
+    requirements: details.data.requirements,
+    demo_url: details.data.demo_url,
     updated_at: new Date().toISOString(),
   };
   if (input.coverImageUrl) patch.cover_image_url = input.coverImageUrl;
@@ -129,6 +135,17 @@ export async function updateProduct(
     .eq("id", input.id)
     .eq("seller_id", user.id);
   if (error) return { error: "Nepavyko išsaugoti." };
+
+  // Diegimo instrukcija — atskiroje, tik serveriui pasiekiamoje lentelėje (tuščia → pašalinama)
+  const guides = createAdminClient().from("product_guides");
+  if (details.data.install_guide) {
+    await guides.upsert(
+      { product_id: input.id, install_guide: details.data.install_guide, updated_at: new Date().toISOString() },
+      { onConflict: "product_id" },
+    );
+  } else {
+    await guides.delete().eq("product_id", input.id);
+  }
 
   revalidatePath("/parduoti");
   redirect("/parduoti");

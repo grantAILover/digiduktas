@@ -24,7 +24,7 @@ async function getProduct(slug: string) {
   const { data } = await supabase
     .from("products")
     .select(
-      "id, seller_id, title, description, price_cents, install_price_cents, cover_image_url, preview_images, allow_download, status",
+      "id, seller_id, title, description, price_cents, install_price_cents, requirements, demo_url, cover_image_url, preview_images, allow_download, status",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -152,6 +152,32 @@ export default async function ProduktasPage({
             {eur(p.price_cents)}
           </p>
 
+          {p.demo_url && (
+            <a
+              href={p.demo_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 w-fit rounded-lg border border-line px-4 py-2 text-sm font-medium transition-colors hover:border-brand hover:text-brand"
+            >
+              Žiūrėti demo ↗
+            </a>
+          )}
+
+          {p.requirements && (
+            <div className="mt-4 rounded-lg border border-line bg-surface px-4 py-3 text-sm">
+              <p className="font-semibold">Reikalavimai</p>
+              <ul className="mt-1 list-disc pl-5 text-muted">
+                {String(p.requirements)
+                  .split("\n")
+                  .map((l) => l.trim().replace(/^[-•*]\s*/, ""))
+                  .filter(Boolean)
+                  .map((l, i) => (
+                    <li key={i}>{l}</li>
+                  ))}
+              </ul>
+            </div>
+          )}
+
           {typeof sp?.err === "string" && ERRORS[sp.err] && (
             <p className="mt-4 rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{ERRORS[sp.err]}</p>
           )}
@@ -168,7 +194,7 @@ export default async function ProduktasPage({
             />
           )}
           <p className="mt-2 text-xs text-muted">
-            Saugus apmokėjimas per Stripe. Po apmokėjimo failą gausite iškart.
+            Saugus apmokėjimas per Stripe. Po apmokėjimo failus ir diegimo instrukciją gausite iškart.
           </p>
 
           {fileKinds.length > 0 && (

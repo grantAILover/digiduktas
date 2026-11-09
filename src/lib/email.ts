@@ -22,7 +22,8 @@ export async function sendOrderConfirmation(opts: {
   const installNote =
     tier === "install"
       ? `<p style="background:#fbf1ea;border-radius:8px;padding:12px;margin:0 0 16px;color:#7a3d16">
-          Pasirinkote diegimą — netrukus susisieksime dėl patogaus laiko nuotoliniam prisijungimui.
+          Pasirinkote diegimą. Skiltyje „Mano pirkiniai" užpildykite trumpą diegimo anketą —
+          susisieksime ir suderinsime patogų laiką nuotoliniam prisijungimui.
         </p>`
       : "";
 
@@ -71,5 +72,111 @@ export async function sendOrderConfirmation(opts: {
     });
   } catch {
     // nekritinis — nesulaužyti apmokėjimo apdorojimo
+  }
+}
+
+/** Kliento įvestą tekstą laiške rodom kaip tekstą, ne HTML. */
+export function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// Pranešimas savininkui: nauja komplekto užklausa. Atsakyti — tiesiai klientui (replyTo). Nekritinis.
+export async function sendBundleRequestNotice(r: {
+  name: string;
+  email: string;
+  phone: string | null;
+  plugins: string[];
+  message: string;
+}) {
+  const key = process.env.RESEND_API_KEY;
+  const to = process.env.ADMIN_EMAIL || REPLY_TO;
+  if (!key || !to) return;
+
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://digiduktas.lt";
+  const row = (label: string, value: string | null) =>
+    `<tr><td style="padding:6px 0;color:#78716c;vertical-align:top;width:140px">${label}</td>
+     <td style="padding:6px 0;white-space:pre-line">${value ? escapeHtml(value) : "—"}</td></tr>`;
+
+  const html = `
+  <div style="font-family:system-ui,-apple-system,Arial,sans-serif;max-width:520px;margin:0 auto;color:#1c1917">
+    <p style="font-size:16px;font-weight:600;margin:0 0 12px">Nauja komplekto užklausa</p>
+    <table style="width:100%;border-collapse:collapse;font-size:14px">
+      ${row("Vardas", r.name)}
+      ${row("El. paštas", r.email)}
+      ${row("Telefonas", r.phone)}
+      ${row("Pluginai", r.plugins.join(", ") || null)}
+      ${row("Ką automatizuoti", r.message)}
+    </table>
+    <a href="${site}/admin#uzklausos" style="display:inline-block;margin-top:16px;background:#b5612c;color:#ffffff;text-decoration:none;font-weight:600;padding:10px 16px;border-radius:8px">
+      Atidaryti admin
+    </a>
+  </div>`;
+
+  try {
+    await new Resend(key).emails.send({
+      from: FROM,
+      to,
+      replyTo: r.email,
+      subject: `Komplekto užklausa — ${r.name}`,
+      html,
+    });
+  } catch {
+    // nekritinis — užklausa jau išsaugota
+  }
+}
+
+// Pranešimas savininkui: nauja (ar atnaujinta) diegimo anketa. Nekritinis.
+export async function sendInstallRequestNotice(r: {
+  productTitle: string;
+  email: string | null;
+  phone: string;
+  preferredTime: string;
+  os: string;
+  tools: string | null;
+  notes: string | null;
+  updated: boolean;
+}) {
+  const key = process.env.RESEND_API_KEY;
+  const to = process.env.ADMIN_EMAIL || REPLY_TO;
+  if (!key || !to) return;
+
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://digiduktas.lt";
+  const row = (label: string, value: string | null) =>
+    `<tr><td style="padding:6px 0;color:#78716c;vertical-align:top;width:140px">${label}</td>
+     <td style="padding:6px 0">${value ? escapeHtml(value) : "—"}</td></tr>`;
+
+  const html = `
+  <div style="font-family:system-ui,-apple-system,Arial,sans-serif;max-width:520px;margin:0 auto;color:#1c1917">
+    <p style="font-size:16px;font-weight:600;margin:0 0 12px">
+      ${r.updated ? "Atnaujinta" : "Nauja"} diegimo anketa — ${escapeHtml(r.productTitle)}
+    </p>
+    <table style="width:100%;border-collapse:collapse;font-size:14px">
+      ${row("El. paštas", r.email)}
+      ${row("Telefonas", r.phone)}
+      ${row("Patogus laikas", r.preferredTime)}
+      ${row("Kompiuteris", r.os)}
+      ${row("Programos", r.tools)}
+      ${row("Pastabos", r.notes)}
+    </table>
+    <a href="${site}/admin#diegimai" style="display:inline-block;margin-top:16px;background:#b5612c;color:#ffffff;text-decoration:none;font-weight:600;padding:10px 16px;border-radius:8px">
+      Atidaryti admin
+    </a>
+  </div>`;
+
+  try {
+    await new Resend(key).emails.send({
+      from: FROM,
+      to,
+      ...(r.email ? { replyTo: r.email } : {}),
+      subject: `${r.updated ? "Atnaujinta" : "Nauja"} diegimo anketa — ${r.productTitle}`,
+      html,
+    });
+  } catch {
+    // nekritinis — anketa jau išsaugota
   }
 }

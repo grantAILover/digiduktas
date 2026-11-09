@@ -13,7 +13,7 @@ export type SignCall = {
 /** Unikalūs stulpeliai (kaip DB indeksai) — pažeidus grąžinama klaida 23505. */
 const UNIQUE: Record<string, string[]> = {
   orders: ["stripe_session_id"],
-  waitlist: ["email", "ref_code"],
+  install_requests: ["order_id"],
 };
 
 export function createFakeSupabase(initial: Record<string, Row[]>) {
@@ -26,7 +26,7 @@ export function createFakeSupabase(initial: Record<string, Row[]>) {
     let selectCols = "*";
     let head = false;
     let order: { col: string; asc: boolean } | null = null;
-    let op: "select" | "insert" | "update" | "upsert" = "select";
+    let op: "select" | "insert" | "update" | "upsert" | "delete" = "select";
     let payload: Row | Row[] | null = null;
     let conflictKeys: string[] = [];
 
@@ -59,11 +59,17 @@ export function createFakeSupabase(initial: Record<string, Row[]>) {
         rows.forEach((r) => Object.assign(r, payload));
         return { data: rows.map(shape), error: null, count: rows.length };
       }
+      if (op === "delete") {
+        const keep = list().filter((r) => !filters.every((f) => f(r)));
+        const removed = list().length - keep.length;
+        tables[table] = keep;
+        return { data: null, error: null, count: removed };
+      }
       if (op === "upsert") {
         const row = payload as Row;
         const i = list().findIndex((r) => conflictKeys.every((k) => r[k] === row[k]));
         if (i >= 0) list()[i] = { ...list()[i], ...row };
-        else list().push({ ...row });
+        else list().push({ id: crypto.randomUUID(), ...row });
         return { data: null, error: null, count: null };
       }
       let rows = matching();
@@ -97,6 +103,10 @@ export function createFakeSupabase(initial: Record<string, Row[]>) {
         filters.push((r) => (r[col] as number | string) <= val);
         return builder;
       },
+      gte(col: string, val: number | string) {
+        filters.push((r) => (r[col] as number | string) >= val);
+        return builder;
+      },
       order(col: string, o?: { ascending?: boolean }) {
         order = { col, asc: o?.ascending !== false };
         return builder;
@@ -109,6 +119,10 @@ export function createFakeSupabase(initial: Record<string, Row[]>) {
       update(patch: Row) {
         op = "update";
         payload = patch;
+        return builder;
+      },
+      delete() {
+        op = "delete";
         return builder;
       },
       upsert(row: Row, o?: { onConflict?: string }) {
@@ -147,26 +161,6 @@ export function createFakeSupabase(initial: Record<string, Row[]>) {
     },
   };
 
-  // DB funkcijos (ta pati logika kaip supabase/migrations/005)
-  let slotSeq = 0;
-  async function rpc(name: string, args: Record<string, unknown>) {
-    if (name !== "claim_founding_slot") return { data: null, error: { code: "42883", message: "no fn" } };
-    const slots = (tables.founding_slots ??= []);
-    const email = String(args.p_email).toLowerCase();
-    const userId = (args.p_user_id as string | null) ?? null;
-    const limit = Number(args.p_limit ?? 20);
-    const numberOf = (s: Row) => slots.filter((x) => (x.id as number) <= (s.id as number)).length;
-    let slot = slots.find((s) => s.email === email) ?? (userId ? slots.find((s) => s.user_id === userId) : undefined);
-    if (slot) {
-      if (userId && !slot.user_id && !slots.some((s) => s.user_id === userId)) slot.user_id = userId;
-      return { data: numberOf(slot), error: null };
-    }
-    if (slots.length >= limit) return { data: null, error: null };
-    slot = { id: ++slotSeq + 1000, email, user_id: userId, created_at: new Date().toISOString() };
-    slots.push(slot);
-    return { data: slots.length, error: null };
-  }
-
   const auth = {
     async getUser() {
       return {
@@ -177,7 +171,7 @@ export function createFakeSupabase(initial: Record<string, Row[]>) {
   };
 
   return {
-    client: { from, storage, auth, rpc },
+    client: { from, storage, auth },
     tables,
     signCalls,
     /** Kas „prisijungęs" (null — niekas). */

@@ -25,6 +25,7 @@ beforeEach(() => {
     ],
     products: [],
     product_files: [],
+    product_guides: [],
   });
   h.fake.loginAs(ADMIN);
 });
@@ -61,6 +62,33 @@ describe("Pluginų įkėlimas (serveris)", () => {
   it("kaina mažesnė nei 3 € — atmetama", async () => {
     expect((await createProduct(input({ priceEur: "2,50" }))).error).toContain("3,00 €");
     expect(products()).toHaveLength(0);
+  });
+
+  it("reikalavimai ir demo — prie plugino; diegimo instrukcija — atskiroje uždaroje lentelėje", async () => {
+    await createProduct(
+      input({
+        requirements: "Claude Pro\nWindows arba Mac",
+        demoUrl: "https://www.youtube.com/watch?v=abc",
+        installGuide: "1. Atsisiųskite\n2. Įdiekite",
+      }),
+    );
+    const p = products()[0];
+    expect(p).toMatchObject({ requirements: "Claude Pro\nWindows arba Mac", demo_url: "https://www.youtube.com/watch?v=abc" });
+    expect(p).not.toHaveProperty("install_guide"); // ne viešoje lentelėje
+    expect(h.fake.tables.product_guides).toEqual([
+      expect.objectContaining({ product_id: p.id, install_guide: "1. Atsisiųskite\n2. Įdiekite" }),
+    ]);
+  });
+
+  it("demo nuoroda — tik http(s) (ne javascript: ir pan.)", async () => {
+    expect((await createProduct(input({ demoUrl: "javascript:alert(1)" }))).error).toMatch(/https/);
+    expect((await createProduct(input({ demoUrl: "ne nuoroda" }))).error).toMatch(/https/);
+    expect(products()).toHaveLength(0);
+  });
+
+  it("be instrukcijos — uždaros lentelės įrašas nekuriamas", async () => {
+    await createProduct(input());
+    expect(h.fake.tables.product_guides).toHaveLength(0);
   });
 
   it("adminas: pluginas paskelbiamas iškart, kategorija — pluginai", async () => {

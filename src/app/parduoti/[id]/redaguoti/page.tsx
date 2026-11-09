@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/require-admin";
+import { createAdminClient } from "@/lib/supabase/admin";
 import EditProductForm from "./EditProductForm";
 
 export const metadata = { title: "Redaguoti pluginą" };
@@ -16,7 +17,7 @@ export default async function RedaguotiPage({
   const { data: product } = await supabase
     .from("products")
     .select(
-      "id, title, description, price_cents, install_price_cents, cover_image_url, preview_images, allow_download, seller_id",
+      "id, title, description, price_cents, install_price_cents, requirements, demo_url, cover_image_url, preview_images, allow_download, seller_id",
     )
     .eq("id", id)
     .maybeSingle();
@@ -31,13 +32,23 @@ export default async function RedaguotiPage({
     .eq("product_id", id)
     .order("position", { ascending: true });
 
+  // Diegimo instrukcija — tik serveriui pasiekiamoje lentelėje
+  const { data: guide } = await createAdminClient()
+    .from("product_guides")
+    .select("install_guide")
+    .eq("product_id", id)
+    .maybeSingle();
+
   return (
     <div className="mx-auto max-w-xl px-4 py-12 sm:px-6">
       <Link href="/parduoti" className="text-sm text-muted hover:text-ink">
         ← Atgal
       </Link>
       <h1 className="mt-4 text-2xl font-bold tracking-tight">Redaguoti pluginą</h1>
-      <EditProductForm product={product} files={files ?? []} />
+      <EditProductForm
+        product={{ ...product, install_guide: guide?.install_guide ?? null }}
+        files={files ?? []}
+      />
     </div>
   );
 }

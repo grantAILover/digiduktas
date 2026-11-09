@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getProductAccess } from "@/lib/access";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { loadProgress } from "@/lib/progress";
 import { isViewable } from "@/lib/files";
 import Viewer, { type ViewerFile } from "@/components/viewer/Viewer";
@@ -23,7 +24,7 @@ export default async function PirkinysPage({ params }: PageProps<"/pirkiniai/[pr
     return (
       <div className="mx-auto max-w-md px-4 py-20 text-center">
         <h1 className="text-2xl font-bold tracking-tight">Nėra prieigos</h1>
-        <p className="mt-3 text-muted">Šį produktą galite atidaryti tik jį nusipirkę.</p>
+        <p className="mt-3 text-muted">Šį pluginą galite atidaryti tik jį nusipirkę.</p>
         <Link
           href="/pirkiniai"
           className="mt-6 inline-block rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-dark"
@@ -35,6 +36,12 @@ export default async function PirkinysPage({ params }: PageProps<"/pirkiniai/[pr
   }
 
   const { product, files, canDownload, role } = access;
+  // Diegimo instrukcija — prieiga jau patikrinta (pirkėjas / savininkas / adminas)
+  const { data: guide } = await createAdminClient()
+    .from("product_guides")
+    .select("install_guide")
+    .eq("product_id", productId)
+    .maybeSingle();
   const rows = await loadProgress(supabase, user.id, productId);
   const progress = Object.fromEntries(rows.map((r) => [r.product_file_id, r.position_seconds]));
 
@@ -69,6 +76,13 @@ export default async function PirkinysPage({ params }: PageProps<"/pirkiniai/[pr
           Peržiūrite kaip {role === "owner" ? "pardavėjas" : "adminas"}.
           {!product.allow_download && " Pirkėjai šio produkto atsisiųsti negalės — tik peržiūrėti."}
         </p>
+      )}
+
+      {guide?.install_guide && (
+        <section className="mt-6 rounded-xl border border-line bg-surface p-5">
+          <h2 className="font-semibold">Diegimo instrukcija</h2>
+          <div className="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted">{guide.install_guide}</div>
+        </section>
       )}
 
       <div className="mt-6">
